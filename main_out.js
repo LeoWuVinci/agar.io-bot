@@ -503,6 +503,7 @@
         else {
             var S = null;
             f.setNick = function(a) {
+				bot.name=a;
                 na();
                 N = a;
                 qa();
