@@ -488,7 +488,7 @@
             da = !1, //game in progress?
             D = 0, //could be alpha?
             fa = !1, //dark theme
-            wa = !1, //show mass
+            wa = 1, //show mass
             K = s = ~~((T + V) / 2),
             L = t = ~~((U + W) / 2),
             M = 1,
