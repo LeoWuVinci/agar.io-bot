@@ -30,7 +30,7 @@
         var a = !1,
             b = !1,
             c = !1;
-        f.onkeydown = function(d) {
+        f.onkeydown = function(d) { //32=space, 81=Q, 87=W, 27=escape
             32 != d.keyCode || a || (G(), A(17), a = !0);
             81 != d.keyCode || b || (A(18), b = !0);
             87 != d.keyCode || c || (G(), A(21), c = !0);
@@ -70,14 +70,9 @@
     }
 
     function aa() { //calculates the movement direction based on the mouse
-		if (mouseEnabled){
-			Q = (O - p / 2) / h + s;
-			R = (P - m / 2) / h + t
-		}else{
-			bot.onState(w)
-			bot.move=function(x,y){Q=x,R=y}
-		}
-    }
+		Q = (O - p / 2) / h + s;
+		R = (P - m / 2) / h + t
+}
 
     function ia() { //request server region info and populate dropdown
         null == S && (S = {}, r("#region").children().each(function() {
@@ -282,7 +277,7 @@
         for (e = 0; e < q.length; e++) q[e].updateCode != b && q[e--].destroy();
        	if(da && 0 == g.length){
 		   r("#overlays").fadeIn(3E3); //upon death
-			console.log("death");
+			console.log("died x_X");
 			window.setInterval(function(){window.setNick(document.getElementById('nick').value)},5000)
 		}
     }
@@ -291,6 +286,9 @@
         if (ea()) {
             var a = O - p / 2,
                 b = P - m / 2;
+			if(!mouseEnabled){
+				bot.onState(w)
+			}
             64 > a * a + b * b || ta == Q && ua == R || (
 					ta = Q, 
 					ua = R,
@@ -319,7 +317,7 @@
         return null != l && l.readyState == l.OPEN
     }
 
-    function A(a) {
+    function A(a) { //A(17) split?
         if (ea()) {
             var b = new ArrayBuffer(1);
             (new DataView(b)).setUint8(0, a);
@@ -472,7 +470,10 @@
             P = 0,
             Q = -1,
             R = -1,
-			bot=new Bot("Lio",function(x,y){Q=x,R=y}),
+			bot=window.bot=new Bot(
+				function(x,y){Q=x,R=y},
+				function(){A(17)},
+				function(){A(21)}),
             Fa = 0,
             E = 0,
             N = null, //nick
