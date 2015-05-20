@@ -278,7 +278,7 @@
        	if(da && 0 == g.length){
 		   r("#overlays").fadeIn(3E3); //upon death
 			console.log("died x_X");
-			window.setInterval(function(){window.setNick(document.getElementById('nick').value)},5000)
+			window.setTimeout(function(){window.setNick(document.getElementById('nick').value)},5000)
 		}
     }
 
@@ -287,7 +287,7 @@
             var a = O - p / 2,
                 b = P - m / 2;
 			if(!mouseEnabled){
-				bot.onState(w)
+				bot.onState(w,g)
 			}
             64 > a * a + b * b || ta == Q && ua == R || (
 					ta = Q, 
@@ -399,7 +399,7 @@
         }
     }
 
-    function Ga() {
+    function Ga() { //score
         for (var a = 0, b = 0; b < g.length; b++) a += g[b].nSize * g[b].nSize;
         return a
     }
@@ -461,7 +461,7 @@
             s = 0,
             t = 0,
             B = [],
-            g = [], //what is g? seems important
+            g = [], //myOrganisms
             w = {},
             q = [],
             C = [],
