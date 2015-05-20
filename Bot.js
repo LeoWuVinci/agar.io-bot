@@ -6,7 +6,7 @@ var Action=function(type,fitness,x,y,organism){
 	this.organism=organism
 }
 Action.prototype={
-	type:'',
+	type:'', //move,split,shoot
 	x:0,
 	y:0,
 	fitness:0,
@@ -52,12 +52,15 @@ Bot.prototype={
 		}
 		return [fitnessScore,fitnessTraits]
 	},
-	name:"",
 	lastBestAction:"",
 	onState:function(organisms,myOrganisms){
-		var myOrganism=myOrganisms[0]
+		var myOrganism=myOrganisms[0],
+			otherOrganisms=organisms.filter(function(organism){
+				return myOrganisms.indexOf(organism)==-1
+			})
 	
 		if (myOrganisms.length<1){
+			console.log("dead x_X")
 			return
 		}
 
@@ -66,11 +69,10 @@ Bot.prototype={
 		}
 
 		var bestAction=null
-		for (key in organisms){
-			var organism=organisms[key],
+		for(var i=0;i<otherOrganisms.length;i++){
+			var organism=otherOrganisms[i],
 				action
 
-			if (organism.name!=myOrganism.name){
 				if (organism.isVirus&&organism.size<myOrganism.size*1.15
 							||!organism.isVirus&&organism.size*.85>myOrganism.size
 				){
@@ -106,7 +108,6 @@ Bot.prototype={
 						action=new Action('split',splitFitness,organism.x,organism.y,organism)
 					}
 				}
-			}
 
 			if(!bestAction||bestAction.fitness[0]<action.fitness[0]){
 				bestAction=action

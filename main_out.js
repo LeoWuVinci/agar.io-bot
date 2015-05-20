@@ -202,7 +202,7 @@
             case 32:
                 B.push(d.getUint32(1, !0));
                 break;
-            case 49:
+            case 49: //loads leaderboard from server
                 if (null != u) break;
                 a = d.getUint32(c, !0);
                 c += 4;
@@ -276,8 +276,7 @@
         for (e = 0; e < k; e++) d = a.getUint32(c, !0), c += 4, w[d] && (w[d].updateCode = b);
         for (e = 0; e < q.length; e++) q[e].updateCode != b && q[e--].destroy();
        	if(da && 0 == g.length){
-		   r("#overlays").fadeIn(3E3); //upon death
-			console.log("died x_X");
+		   	r("#overlays").fadeIn(3E3); //upon death
 			window.setTimeout(function(){window.setNick(document.getElementById('nick').value)},5000)
 		}
     }
@@ -287,7 +286,7 @@
             var a = O - p / 2,
                 b = P - m / 2;
 			if(!mouseEnabled){
-				bot.onState(w,g)
+				bot.onState(q,g)
 			}
             64 > a * a + b * b || ta == Q && ua == R || (
 					ta = Q, 
@@ -346,7 +345,7 @@
         }
     }
 
-    function ba() {
+    function ba() { //nextFrame()
         var a = +new Date;
         ++Fa;
         E = +new Date;
@@ -370,7 +369,7 @@
         e.scale(h, h);
         b = p / h;
         c = m / h;
-        for (d = -.5 + (-s + b / 2) % 50; d < b; d += 50) e.beginPath(), e.moveTo(d, 0), e.lineTo(d, c), e.stroke();
+        for (d = -.5 + (-s + b / 2) % 50; d < b; d += 50) e.beginPath(), e.moveTo(d, 0), e.lineTo(d, c), e.stroke(); //draws grid lines
         for (d = -.5 + (-t + c / 2) % 50; d < c; d += 50) e.beginPath(), e.moveTo(0, d), e.lineTo(b, d), e.stroke();
         e.restore();
         q.sort(function(a, b) {
@@ -404,7 +403,7 @@
         return a
     }
 
-    function ra() {
+    function ra() { //redraw leaderboard
         x = null;
         if (null != u || 0 != y.length)
             if (null != u || Z) {
@@ -462,14 +461,14 @@
             t = 0,
             B = [],
             g = [], //myOrganisms
-            w = {},
-            q = [],
-            C = [],
-            y = [],
+            w = {}, //every cell
+            q = [], //being drawn every frame
+            C = [], //when destroyed, cell is removed from q and added C
+            y = [], //leaderboard
             O = 0,
             P = 0,
-            Q = -1,
-            R = -1,
+            Q = -1, //absolute movement target x
+            R = -1, //absolute movement target y
 			bot=window.bot=new Bot(
 				function(x,y){Q=x,R=y},
 				function(){A(17)},
@@ -504,7 +503,6 @@
         else {
             var S = null;
             f.setNick = function(a) {
-				bot.name=a;
                 na();
                 N = a;
                 qa();
