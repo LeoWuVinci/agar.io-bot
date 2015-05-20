@@ -14,10 +14,70 @@ Action.prototype={
 }
 
 //Map is 11150x11150
+Chart.defaults.Line.pointDot=false
+Chart.defaults.Line.showScale=false
+Chart.defaults.global.responsive=false
+var canvas=$('<canvas id="score-history-chart" width="200" height="200" style="position:fixed"></canvas>')
+$('body').append(canvas);
+var ctx=canvas.get(0).getContext("2d")
+var labels=[],
+	data1=[],
+	data2=[]
+for(var i=0;i<100;i++){
+	labels.push(i)
+	data1.push(0)
+	data2.push(0)
+}
+
+var chart=new Chart(ctx).Line({labels:labels,datasets:[{
+			label: "Score History",
+			fillColor: "rgba(220,220,220,0.2)",
+			strokeColor: "rgba(220,220,220,1)",
+			pointColor: "rgba(220,220,220,0)",
+//			pointStrokeColor: "#fff",
+//			pointHighlightFill: "#fff",
+			pointHighlightStroke: "rgba(220,220,220,0)",
+			data: data1
+		},
+		{
+			label: "Game History",
+			fillColor: "rgba(151,187,205,1)",
+			strokeColor: "rgba(151,187,205,1)",
+			pointColor: "rgba(151,187,205,1)",
+			data:data2
+		}
+]});
+
+var behaviorCanvas=$('<canvas id="behavior-canvas" width="250" height="100" style="position:fixed;bottom:0px;right:0px"></canvas>')
+$('body').append(behaviorCanvas)
+var behaviorCtx=behaviorCanvas.get(0).getContext("2d")
+
 var Bot=function(move,split,shoot){
 	this.move=move;
 	this.split=split;
 	this.shoot=shoot;
+	var behaviorChart=new Chart(behaviorCtx).Doughnut([
+		{
+		value:this.fitnessWeights.sizeDiff,
+		label:"Similar Size",
+		color:'#FF5A5E'	
+		},
+		{
+		value:this.fitnessWeights.distance,
+		label:"Vicinity",
+		color:"#46BFBD"	
+		},
+		{
+		value:this.fitnessWeights.midMapDistance,
+		label:"Map Edge Avoidance",
+		color:"#FDB45C"
+		},
+		{
+		value:this.fitnessWeights.twiceSizeDiff,
+		label:"Enemy Split Avoidance",
+		color:'#142121'	
+		}
+	])
 }
 
 //size = radius
@@ -53,15 +113,58 @@ Bot.prototype={
 		return [fitnessScore,fitnessTraits]
 	},
 	lastBestAction:"",
-	onState:function(organisms,myOrganisms){
+	currentState:'',
+	lastStateChangeDate:null,
+	gameHistory:[],
+	scoreHistory:[],
+	onTick:function(organisms,myOrganisms,score){
 		var myOrganism=myOrganisms[0],
 			otherOrganisms=organisms.filter(function(organism){
 				return myOrganisms.indexOf(organism)==-1
 			})
-	
+
 		if (myOrganisms.length<1){
-			console.log("dead x_X")
+			if(this.currentState!='dead'){
+				this.gameHistory.push([
+					this.lastStateChangeDate,
+					new Date,	
+					this.scoreHistory
+				])
+
+				console.log("DEAD x_X")
+				console.log("Score",~~(this.scoreHistory[this.scoreHistory.length-1]/100))
+				console.log("Time spent alive",(Date.now()-this.lastStateChangeDate.getTime())/60000,"mins")
+				this.scoreHistory=[]
+				this.lastStateChangeDate=new Date
+			}
+			this.currentState='dead'
 			return
+		}else{
+			if (this.currentState!='alive'){
+				this.lastStateChangeDate=new Date
+			}
+			this.scoreHistory.push(score)
+
+			if(!(this.scoreHistory.length%10)){
+				var j=0;
+				for(var i=this.scoreHistory.length>100?this.scoreHistory.length-100:0;i<this.scoreHistory.length;i++){
+					/*
+					if(j){
+						chart.datasets[0].points[j].value=~~((this.scoreHistory[i]-this.scoreHistory[i-1])/100)
+					}
+					j++	
+				*/	
+					chart.datasets[0].points[j++].value=~~(this.scoreHistory[i]/100)	
+				}
+
+				j=0
+				for(var i=this.gameHistory.length>10?this.gameHistory.length-10:0;i<this.gameHistory.length;i++){
+					var gameStats=this.gameHistory[i];
+					chart.datasets[1].points[10*j++].value=~~(gameStats[2][gameStats[2].length-1]/100)	
+				}
+				chart.update()
+			}
+			this.currentState='alive'
 		}
 
 		if (myOrganism.size>this.largestSize){
@@ -118,7 +221,7 @@ Bot.prototype={
 			bestAction.x+=Math.random()*this.randomness*2-this.randomness
 			bestAction.y+=Math.random()*this.randomness*2-this.randomness
 			this.doAction(bestAction)
-			bestAction.fitness[0]=Math.round(bestAction.fitness[0])
+			bestAction.fitness[0]=~~bestAction.fitness[0]
 			if(!this.lastBestAction
 				||this.lastBestAction.organism.name!=bestAction.organism.name
 				||this.lastBestAction.fitness[0]!=bestAction.fitness[0]

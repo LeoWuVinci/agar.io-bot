@@ -286,7 +286,7 @@
             var a = O - p / 2,
                 b = P - m / 2;
 			if(!mouseEnabled){
-				bot.onState(q,g)
+				bot.onTick(q,g,D)
 			}
             64 > a * a + b * b || ta == Q && ua == R || (
 					ta = Q, 
@@ -486,7 +486,7 @@
             Z = !0, //sets name
             ha = !1, //set color
             da = !1, //game in progress?
-            D = 0, //could be alpha?
+            D = 0, //score
             fa = !1, //dark theme
             wa = 1, //show mass
             K = s = ~~((T + V) / 2),

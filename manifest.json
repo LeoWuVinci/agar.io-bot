@@ -6,11 +6,13 @@
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/*"],
-			"js":["jquery.js","quadtree.js","Bot.js","main_out.js", "script.js"],
+			"js":["jquery.js","quadtree.js","ext/Chart.js","Bot.js","main_out.js", "script.js"],
 			"run_at":"document_end"
 		}
 	],
 	"permissions":[
-		"http://m.agar.io/*"
+		"http://m.agar.io/*",
+		"storage",
+		"unlimitedStorage"
 	]
 }
