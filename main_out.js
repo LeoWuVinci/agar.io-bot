@@ -1,12 +1,10 @@
-(function(f, r) {
-	var mouseEnabled=true;
+ (function(f,r){
     function ya() {
         ia();
         setInterval(ia, 18E4);
         z = $ = document.getElementById("canvas");
         e = z.getContext("2d");
         z.onmousedown = function(a) {
-			mouseEnabled=!mouseEnabled
             if (ja) {
                 var b = a.clientX - (5 + p / 5 / 2),
                     c = a.clientY - (5 + p / 5 / 2);
@@ -285,10 +283,7 @@
         if (ea()) {
             var a = O - p / 2,
                 b = P - m / 2;
-			if(!mouseEnabled){
-				bot.onTick(q,g,D)
-			}
-            64 > a * a + b * b || ta == Q && ua == R || (
+			64 > a * a + b * b || ta == Q && ua == R || (
 					ta = Q, 
 					ua = R,
 					a = new ArrayBuffer(21), 
@@ -381,7 +376,7 @@
         e.translate(-s, -t);
         for (d = 0; d < C.length; d++) C[d].draw();
         for (d = 0; d < q.length; d++) q[d].draw();
-		bot.onDraw(e,g)
+		bot.draw(e) //TODO premium feature
         e.restore();
         x && e.drawImage(x, p - x.width - 10, 10);
         D = Math.max(D, Ga());
@@ -470,11 +465,7 @@
             P = 0,
             Q = -1, //absolute movement target x
             R = -1, //absolute movement target y
-			bot=window.bot=new Bot(
-				function(x,y){Q=x,R=y},
-				function(){A(17)},
-				function(){A(21)}),
-            Fa = 0,
+			            Fa = 0,
             E = 0,
             N = null, //nick
             T = 0,
@@ -779,4 +770,15 @@
             f.onload = ya
         }
     }
-})(window, jQuery);
+
+	var bot=window.bot=new Bot(
+			function(x,y){Q=x,R=y},
+			function(){A(17)},
+			function(){A(21)})
+
+	var sendMove=G
+	G=function(){
+		bot.onTick(q,g,D)
+		sendMove()
+	}
+})(window,jQuery)

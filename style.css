@@ -1,0 +1,10 @@
+#score-history-chart {
+	position:fixed;
+}
+
+#bot-intuition {
+	position:fixed;
+	width:100%;
+	bottom:5px;
+	text-align:center;
+}

@@ -1,3 +1,10 @@
+/*
+Advance Tactics
+1. Using viruses to trap players
+2. Shoot at viruses to break large blobs
+
+   */
+
 var Action=function(type,fitness,x,y,organism){
 	this.type=type
 	this.x=x
@@ -17,7 +24,7 @@ Action.prototype={
 Chart.defaults.Line.pointDot=false
 Chart.defaults.Line.showScale=false
 Chart.defaults.global.responsive=false
-var canvas=$('<canvas id="score-history-chart" width="200" height="200" style="position:fixed"></canvas>')
+var canvas=$('<canvas id="score-history-chart" width="200" height="200"></canvas>')
 $('body').append(canvas);
 var ctx=canvas.get(0).getContext("2d")
 var labels=[],
@@ -43,7 +50,7 @@ var chart=new Chart(ctx).Line({labels:labels,datasets:[{
 	}
 ]});
 
-var behaviorCanvas=$('<div style="position:fixed;width:100%;bottom:5px;text-align:center"><h4>Bot Behavior</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
+var behaviorCanvas=$('<div id="bot-intuition"><h4>Bot Intuition</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
 $('body').append(behaviorCanvas)
 var behaviorCtx=$('#behavior-canvas').get(0).getContext("2d")
 
@@ -73,8 +80,6 @@ var Bot=function(move,split,shoot){
 //size = radius
 //score=size*size/100
 Bot.prototype={
-	largestSize:0,
-	reflex:100,
 	randomness:0, //or noise?
 	splitted:false,
 	considerations:[
@@ -154,6 +159,7 @@ Bot.prototype={
 	lastStateChangeDate:null,
 	gameHistory:[],
 	scoreHistory:[],
+	myOrganisms:[],
 	onTick:function(organisms,myOrganisms,score){
 		var myOrganism=myOrganisms[0],
 			otherOrganisms=organisms.filter(function(organism){
@@ -167,14 +173,15 @@ Bot.prototype={
 				organism.y2=organism.y
 				return myOrganisms.indexOf(organism)==-1
 			})
+		this.myOrganisms=myOrganisms
 
 		if (myOrganisms.length<1){
-			if(this.currentState!='dead'){
+			if(this.currentState&&this.currentState!='dead'){
 				for(var i=0;i<this.considerations.length;i++){
 					if(this.scoreHistory>this.gameHistory[this.gameHistory.length-1]){
 						this.considerations[i].weight+=Math.random()*2	
 					}else{
-						this.considerations[i].weight+=Math.random()*6	
+						this.considerations[i].weight*=1+Math.random()*2	
 					}
 				}
 
@@ -232,10 +239,6 @@ Bot.prototype={
 			this.currentState='alive'
 		}
 
-		if (myOrganism.size>this.largestSize){
-			this.largestSize=myOrganism.size
-		}
-
 		var bestAction=null
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
@@ -254,7 +257,7 @@ Bot.prototype={
 							myOrganism.x+myOrganism.x-organism.x,
 							myOrganism.y+myOrganism.y-organism.y,
 							organism)
-						action.fitness[0]+=this.reflex
+						action.fitness[0]*=2
 						console.log("dodging ",organism.name)
 					}else{
 						action=new Action(
@@ -312,10 +315,23 @@ Bot.prototype={
 				bestAction.x*=10
 			}
 
-			this.doAction(bestAction)
+			switch(bestAction.type){
+				case 'move':
+					this.move(bestAction.x,bestAction.y)
+				break;
+				case 'split':
+					this.move(bestAction.x,bestAction.y)
+					this.splitted=true
+					this.split()
+				break;
+				case 'shoot':
+					this.move(bestAction.x,bestAction.y)
+					this.shoot()
+				break;	
+			 }
+
 			if(!this.lastBestAction
 				||this.lastBestAction.organism.name!=bestAction.organism.name
-				||~~this.lastBestAction.fitness[0]!=~~bestAction.fitness[0]
 			){
 				if(bestAction.organism.isVirus){
 					console.log("avoiding virus", bestAction.organism.name,bestAction)
@@ -328,26 +344,11 @@ Bot.prototype={
 			this.lastBestAction=bestAction
 		}
 	},
-	doAction:function(action){
-		switch(action.type){
-			case 'move':
-				this.move(action.x,action.y)
-			break;
-			case 'split':
-				this.move(action.x,action.y)
-				this.splitted=true
-				this.split()
-			break;
-			case 'shoot':
-				this.move(action.x,action.y)
-				this.shoot()
-			break;	
-		 }
-	 },
 	move:function(x,y){}, //overwrite these in main_out.js
 	split:function(){},
 	shoot:function(){},
-	onDraw:function(ctx,myOrganisms){ //TODO Consider multiple blobs
+	draw:function(ctx){ //TODO Consider multiple blobs
+		var myOrganisms=this.myOrganisms
 		if(this.lastBestAction&&myOrganisms.length>0){
 			var myOrganism=myOrganisms[0]
 			ctx.beginPath()

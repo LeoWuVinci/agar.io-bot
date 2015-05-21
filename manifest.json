@@ -6,7 +6,8 @@
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/*"],
-			"js":["jquery.js","quadtree.js","ext/Chart.js","Bot.js","main_out.js", "script.js"],
+			"css":["style.css"],
+			"js":["ext/jquery.js","ext/Chart.js","quadtree.js","Bot.js","main_out.js", "script.js"],
 			"run_at":"document_end"
 		}
 	],
