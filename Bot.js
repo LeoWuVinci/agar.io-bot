@@ -30,22 +30,22 @@ for(var i=0;i<100;i++){
 }
 
 var chart=new Chart(ctx).Line({labels:labels,datasets:[{
-			label: "Score History",
-			fillColor: "rgba(220,220,220,0.2)",
-			strokeColor: "rgba(220,220,220,1)",
-			pointColor: "rgba(220,220,220,0)",
-//			pointStrokeColor: "#fff",
-//			pointHighlightFill: "#fff",
-			pointHighlightStroke: "rgba(220,220,220,0)",
-			data: data1
-		},
-		{
-			label: "Game History",
-			fillColor: "rgba(151,187,205,1)",
-			strokeColor: "rgba(151,187,205,1)",
-			pointColor: "rgba(151,187,205,1)",
-			data:data2
-		}
+		label: "Score History",
+		fillColor: "rgba(220,220,220,0.2)",
+		strokeColor: "rgba(220,220,220,1)",
+		pointColor: "rgba(220,220,220,0)",
+//		pointStrokeColor: "#fff",
+//		pointHighlightFill: "#fff",
+		pointHighlightStroke: "rgba(220,220,220,0)",
+		data: data1
+	},
+	{
+		label: "Game History",
+		fillColor: "rgba(151,187,205,1)",
+		strokeColor: "rgba(151,187,205,1)",
+		pointColor: "rgba(151,187,205,1)",
+		data:data2
+	}
 ]});
 
 var behaviorCanvas=$('<canvas id="behavior-canvas" width="250" height="100" style="position:fixed;bottom:0px;right:0px"></canvas>')
@@ -56,7 +56,7 @@ var Bot=function(move,split,shoot){
 	this.move=move;
 	this.split=split;
 	this.shoot=shoot;
-	var behaviorChart=new Chart(behaviorCtx).Doughnut([
+	this.behaviorChart=new Chart(behaviorCtx).Doughnut([
 		{
 		value:this.fitnessWeights.sizeDiff,
 		label:"Similar Size",
@@ -96,16 +96,16 @@ Bot.prototype={
 		splitDist:0 //3
 	},
 	calcFitness:function(myOrganism,organism,action){ //map size 11150
-		var distance=-(Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)-myOrganism.size-organism.size)/1000,
+		var distance=10-(Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)-myOrganism.size-organism.size)/1000,
 			fitnessTraits={
-				sizeDiff:-(!organism.isVirus)*Math.abs(myOrganism.size-organism.size)/100,
+				sizeDiff:10-(!organism.isVirus)*Math.abs(myOrganism.size-organism.size)/100,
 				distance:distance,
-				midMapDistance:-(Math.pow(Math.pow(5575-organism.x,2)+Math.pow(5575-organism.y,2),.5))/5575,
-				twiceSizeDiff:(!organism.isVirus)*-Math.abs(organism.size-myOrganism.size*2)/100, //likelyhood to stay away from splitters
-				halfMySize:(action=='split')*((organism.size-myOrganism.size)/5000+1),
-				splitDist:(action=='split')*-distance
+				midMapDistance:10-(Math.pow(Math.pow(5575-organism.x,2)+Math.pow(5575-organism.y,2),.5))/5575,
+				twiceSizeDiff:10-(!organism.isVirus)*Math.abs(organism.size-myOrganism.size*2)/100, //likelyhood to stay away from splitters
+				halfMySize:10-(action=='split')*((organism.size-myOrganism.size)/5000+1),
+				splitDist:10-(action=='split')*-distance
 				},
-			fitnessScore=100
+			fitnessScore=0
 		
 		for(key in fitnessTraits){
 			fitnessScore+=fitnessTraits[key]*this.fitnessWeights[key]
@@ -163,6 +163,7 @@ Bot.prototype={
 					chart.datasets[1].points[10*j++].value=~~(gameStats[2][gameStats[2].length-1]/100)	
 				}
 				chart.update()
+				this.behaviorChart.update()
 			}
 			this.currentState='alive'
 		}
@@ -185,7 +186,7 @@ Bot.prototype={
 							myOrganism.x+myOrganism.x-organism.x,
 							myOrganism.y+myOrganism.y-organism.y,
 							organism)
-					if(action.fitness[1].distance > 0){
+					if(action.fitness[1].distance > 10){
 						action.fitness[0]+=this.reflex
 						console.log("dodging ",organism.name)
 					}
