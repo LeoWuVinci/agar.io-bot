@@ -33,51 +33,41 @@ var chart=new Chart(ctx).Line({labels:labels,datasets:[{
 		label: "Score History",
 		fillColor: "rgba(220,220,220,0.2)",
 		strokeColor: "rgba(220,220,220,1)",
-		pointColor: "rgba(220,220,220,0)",
-//		pointStrokeColor: "#fff",
-//		pointHighlightFill: "#fff",
-		pointHighlightStroke: "rgba(220,220,220,0)",
 		data: data1
 	},
 	{
 		label: "Game History",
 		fillColor: "rgba(151,187,205,1)",
 		strokeColor: "rgba(151,187,205,1)",
-		pointColor: "rgba(151,187,205,1)",
 		data:data2
 	}
 ]});
 
-var behaviorCanvas=$('<canvas id="behavior-canvas" width="250" height="100" style="position:fixed;bottom:0px;right:0px"></canvas>')
+var behaviorCanvas=$('<div style="position:fixed;width:100%;bottom:5px;text-align:center"><h4>Bot Behavior</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
 $('body').append(behaviorCanvas)
-var behaviorCtx=behaviorCanvas.get(0).getContext("2d")
+var behaviorCtx=$('#behavior-canvas').get(0).getContext("2d")
+
+var Consideration=function(label,consider,weight,color){
+	this.weight=weight;
+	this.label=label;
+	this.color=color;
+	this.consider=consider;	
+}
+
+Consideration.prototype={
+	weight:1,
+	   label:'',
+	   color:'',
+	   get value(){
+		   return this.weight;
+	   }	
+}
 
 var Bot=function(move,split,shoot){
 	this.move=move;
 	this.split=split;
 	this.shoot=shoot;
-	this.behaviorChart=new Chart(behaviorCtx).Doughnut([
-		{
-		value:this.fitnessWeights.sizeDiff,
-		label:"Similar Size",
-		color:'#FF5A5E'	
-		},
-		{
-		value:this.fitnessWeights.distance,
-		label:"Vicinity",
-		color:"#46BFBD"	
-		},
-		{
-		value:this.fitnessWeights.midMapDistance,
-		label:"Map Edge Avoidance",
-		color:"#FDB45C"
-		},
-		{
-		value:this.fitnessWeights.twiceSizeDiff,
-		label:"Enemy Split Avoidance",
-		color:'#142121'	
-		}
-	]);
+	this.behaviorChart=new Chart(behaviorCtx).Doughnut(this.considerations)
 }
 
 //size = radius
@@ -87,31 +77,67 @@ Bot.prototype={
 	reflex:100,
 	randomness:0, //or noise?
 	splitted:false,
-	fitnessWeights:{
-		sizeDiff:1,
-		distance:2,
-		midMapDistance:3,
-		twiceSizeDiff:1,
-		halfMySize:0,//1
-		splitDist:0 //3
-	},
+	considerations:[
+		new Consideration(
+			"Similar Size",
+			function(myOrganism,otherOrganism,actionType){
+				return 10-(!otherOrganism.isVirus)*Math.abs(myOrganism.size-otherOrganism.size)/100
+			},
+			1,
+			'#FF5A5E'	
+		),
+		new Consideration(
+			"Vicinity",
+			function(myOrganism,otherOrganism,actionType){
+				return 10-(Math.pow(Math.pow(myOrganism.x-otherOrganism.x,2)+Math.pow(myOrganism.y-otherOrganism.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+			},
+			2,
+			'#46BFBD'
+		),
+		new Consideration(
+			"Map Edge Avoidance",
+			function(myOrganism,otherOrganism,actionType){
+				return 10-(Math.pow(Math.pow(5575-otherOrganism.x,2)+Math.pow(5575-otherOrganism.y,2),.5))/5575
+			},
+			3,
+			'#FDB45C'
+		),
+		new Consideration(
+			"Enemy Split Avoidance",
+			function(myOrganism,otherOrganism,actionType){
+				return 10-(!otherOrganism.isVirus)*Math.abs(otherOrganism.size-myOrganism.size*2)/100 //likelyhood to stay away from splitters
+			},
+			1,
+			'#33EE33'
+		),
+		new Consideration(
+			"Split based on Size",
+			function(myOrganism,otherOrganism,actionType){
+				return 10-(actionType=='split')*((otherOrganism.size-myOrganism.size)/5000+1)
+			},
+			0,
+			'#FF0000'
+		),
+		new Consideration(
+			"Split based on distance",
+			function(myOrganism,otherOrganism,actionType){
+				var distance=0 //FIXME Find the correct distance
+				return 10-(actionType=='split')*-distance
+			},
+			0,
+			'#FF0000'
+		)
+	],
 	dodgeDist:100, //px TODO dynamically change dodgeDist based on ping
 	calcFitness:function(myOrganism,organism,action){ //map size 11150
-		var distance=10-(Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)-myOrganism.size-organism.size)/1000,
-			fitnessTraits={
-				sizeDiff:10-(!organism.isVirus)*Math.abs(myOrganism.size-organism.size)/100,
-				distance:distance,
-				midMapDistance:10-(Math.pow(Math.pow(5575-organism.x,2)+Math.pow(5575-organism.y,2),.5))/5575,
-				twiceSizeDiff:10-(!organism.isVirus)*Math.abs(organism.size-myOrganism.size*2)/100, //likelyhood to stay away from splitters
-				halfMySize:10-(action=='split')*((organism.size-myOrganism.size)/5000+1),
-				splitDist:10-(action=='split')*-distance
-				},
-			fitnessScore=0
-		
-		for(key in fitnessTraits){
-			fitnessScore+=fitnessTraits[key]*this.fitnessWeights[key]
+		fitnessScore=0
+		considerationValues=[]
+		for(var i=0;i<this.considerations.length;i++){
+			var considerationValue=this.considerations[i].consider(myOrganism,organism,action)
+			considerationValues.push(considerationValue)
+			fitnessScore+=considerationValue*this.considerations[i].weight
 		}
-		return [fitnessScore,fitnessTraits]
+		return [fitnessScore,considerationValues]
 	},
 	lastBestAction:"",
 	currentState:'',
@@ -164,8 +190,19 @@ Bot.prototype={
 					chart.datasets[1].points[10*j++].value=~~(gameStats[2][gameStats[2].length-1]/100)	
 				}
 				chart.update()
+			}
+
+			var needsUpdate=false
+			for(var i=0;i<this.considerations.length;i++){
+				if(this.behaviorChart.segments[i].value!=this.considerations[i].value){
+					this.behaviorChart.segments[i].value=this.considerations[i].value
+					needsUpdate=true
+				}
+			}
+			if(needsUpdate){
 				this.behaviorChart.update()
 			}
+			
 			this.currentState='alive'
 		}
 
@@ -222,6 +259,19 @@ Bot.prototype={
 		if(bestAction){
 			bestAction.x+=Math.random()*this.randomness*2-this.randomness
 			bestAction.y+=Math.random()*this.randomness*2-this.randomness
+
+			//Eliminates drag against invisible wall
+			if (bestAction.x+myOrganism.size>11150){
+				bestAction.x=11200-myOrganism.size;
+			}else if(bestAction.x-myOrganism.size<0){
+				bestAction.x=myOrganism.size;
+			}
+			if (bestAction.y+myOrganism.size>11150){
+				bestAction.y=11200-myOrganism.size;
+			}else if(bestAction.y-myOrganism.size<0){
+				bestAction.y=myOrganism.size;
+			}
+
 			this.doAction(bestAction)
 			if(!this.lastBestAction
 				||this.lastBestAction.organism.name!=bestAction.organism.name
