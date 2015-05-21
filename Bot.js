@@ -224,7 +224,7 @@ Bot.prototype={
 							myOrganism.x+myOrganism.x-organism.x,
 							myOrganism.y+myOrganism.y-organism.y,
 							organism)
-					if(action.fitness[1].distance > 10-this.dodgeDist/1000){
+					if(action.fitness[1][1] > 10-this.dodgeDist/1000){
 						action.fitness[0]+=this.reflex
 						console.log("dodging ",organism.name)
 					}
