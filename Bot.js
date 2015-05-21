@@ -13,7 +13,7 @@ Action.prototype={
 	organism:null
 }
 
-//Map is 11150x11150
+//Map is 11200x11200
 Chart.defaults.Line.pointDot=false
 Chart.defaults.Line.showScale=false
 Chart.defaults.global.responsive=false
@@ -79,33 +79,41 @@ Bot.prototype={
 	splitted:false,
 	considerations:[
 		new Consideration(
-			"Similar Size",
+			"Size Difference",
 			function(myOrganism,otherOrganism,actionType){
-				return 10-(!otherOrganism.isVirus)*Math.abs(myOrganism.size-otherOrganism.size)/100
+				if(otherOrganism.isVirus){
+					return (myOrganism.size-otherOrganism.size)/2000-2	
+				}else{
+					return -Math.abs(myOrganism.size-otherOrganism.size)/100
+				}
 			},
 			1,
 			'#FF5A5E'	
 		),
 		new Consideration(
-			"Vicinity",
+			"Nearest Target",
 			function(myOrganism,otherOrganism,actionType){
-				return 10-(Math.pow(Math.pow(myOrganism.x-otherOrganism.x,2)+Math.pow(myOrganism.y-otherOrganism.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+				return -(Math.pow(Math.pow(myOrganism.x-otherOrganism.x,2)+Math.pow(myOrganism.y-otherOrganism.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
 			},
-			2,
+			1,
 			'#46BFBD'
 		),
 		new Consideration(
 			"Map Edge Avoidance",
 			function(myOrganism,otherOrganism,actionType){
-				return 10-(Math.pow(Math.pow(5575-otherOrganism.x,2)+Math.pow(5575-otherOrganism.y,2),.5))/5575
+				return -(Math.pow(Math.pow(5575-otherOrganism.x,2)+Math.pow(5575-otherOrganism.y,2),.5))/5575
 			},
-			3,
+			1,
 			'#FDB45C'
 		),
 		new Consideration(
-			"Enemy Split Avoidance",
+			"Splitter Avoidance",
 			function(myOrganism,otherOrganism,actionType){
-				return 10-(!otherOrganism.isVirus)*Math.abs(otherOrganism.size-myOrganism.size*2)/100 //likelyhood to stay away from splitters
+				if (otherOrganism.isVirus){
+					return -1
+				}else{
+					return -Math.abs(otherOrganism.size-myOrganism.size*2)/100 //likelyhood to stay away from splitters
+				}
 			},
 			1,
 			'#33EE33'
@@ -113,7 +121,7 @@ Bot.prototype={
 		new Consideration(
 			"Split based on Size",
 			function(myOrganism,otherOrganism,actionType){
-				return 10-(actionType=='split')*((otherOrganism.size-myOrganism.size)/5000+1)
+				return -(actionType=='split')*((otherOrganism.size-myOrganism.size)/5000+1)
 			},
 			0,
 			'#FF0000'
@@ -122,7 +130,7 @@ Bot.prototype={
 			"Split based on distance",
 			function(myOrganism,otherOrganism,actionType){
 				var distance=0 //FIXME Find the correct distance
-				return 10-(actionType=='split')*-distance
+				return -(actionType=='split')*-distance
 			},
 			0,
 			'#FF0000'
@@ -135,7 +143,7 @@ Bot.prototype={
 		for(var i=0;i<this.considerations.length;i++){
 			var considerationValue=this.considerations[i].consider(myOrganism,organism,action)
 			considerationValues.push(considerationValue)
-			fitnessScore+=considerationValue*this.considerations[i].weight
+			fitnessScore+=(10+considerationValue)*this.considerations[i].weight
 		}
 		return [fitnessScore,considerationValues]
 	},
@@ -147,6 +155,14 @@ Bot.prototype={
 	onTick:function(organisms,myOrganisms,score){
 		var myOrganism=myOrganisms[0],
 			otherOrganisms=organisms.filter(function(organism){
+				if(organism.x2){
+					organism.dx=organism.x-organism.x2
+				}
+				if(organism.y2){
+					organism.dy=organism.y-organism.y2
+				}
+				organism.x2=organism.x
+				organism.y2=organism.y
 				return myOrganisms.indexOf(organism)==-1
 			})
 
@@ -215,18 +231,28 @@ Bot.prototype={
 			var organism=otherOrganisms[i],
 				action
 
+			var tickCount=Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)/Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5);
+
+
 				if (organism.isVirus&&organism.size<myOrganism.size
 							||!organism.isVirus&&organism.size*.85>myOrganism.size
 				){
-					action=new Action(
+					if(Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)-myOrganism.size-organism.size<this.dodgeDist){
+						action=new Action(
 							'move',
 							this.calcFitness(myOrganism,organism),
 							myOrganism.x+myOrganism.x-organism.x,
 							myOrganism.y+myOrganism.y-organism.y,
 							organism)
-					if(action.fitness[1][1] > 10-this.dodgeDist/1000){
 						action.fitness[0]+=this.reflex
 						console.log("dodging ",organism.name)
+					}else{
+						action=new Action(
+							'move',
+							this.calcFitness(myOrganism,organism),
+							myOrganism.x+myOrganism.x-(organism.x+tickCount*organism.dx),
+							myOrganism.y+myOrganism.y-(organism.y+tickCount*organism.dy),
+							organism)
 					}
 				}else if (!organism.isVirus
 						&&organism.size<myOrganism.size*.85){
@@ -245,7 +271,7 @@ Bot.prototype={
 						if(myOrganisms.length>1){
 							this.splitted=false //resets the split mechanism early
 						}
-						action=new Action('move',moveFitness,organism.x,organism.y,organism)
+						action=new Action('move',moveFitness,organism.x+tickCount*organism.dx,organism.y+tickCount*organism.dy,organism)
 					}else{
 						action=new Action('split',splitFitness,organism.x,organism.y,organism)
 					}
@@ -261,15 +287,19 @@ Bot.prototype={
 			bestAction.y+=Math.random()*this.randomness*2-this.randomness
 
 			//Eliminates drag against invisible wall
-			if (bestAction.x+myOrganism.size>11150){
+			if (bestAction.x+myOrganism.size>11200){
 				bestAction.x=11200-myOrganism.size;
+				bestAction.y*=10
 			}else if(bestAction.x-myOrganism.size<0){
 				bestAction.x=myOrganism.size;
+				bestAction.y*=10
 			}
-			if (bestAction.y+myOrganism.size>11150){
+			if (bestAction.y+myOrganism.size>11200){
 				bestAction.y=11200-myOrganism.size;
+				bestAction.x*=10
 			}else if(bestAction.y-myOrganism.size<0){
 				bestAction.y=myOrganism.size;
+				bestAction.x*=10
 			}
 
 			this.doAction(bestAction)
@@ -319,6 +349,12 @@ Bot.prototype={
 			}	
 			ctx.moveTo(myOrganism.x,myOrganism.y)
 			ctx.lineTo(this.lastBestAction.organism.x,this.lastBestAction.organism.y)
+			ctx.stroke()
+			
+			ctx.beginPath()
+			ctx.strokeStyle="blue"
+			ctx.moveTo(myOrganism.x,myOrganism.y)
+			ctx.lineTo(this.lastBestAction.x,this.lastBestAction.y)
 			ctx.stroke()
 		}
 	}
