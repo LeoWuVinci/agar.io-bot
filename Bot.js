@@ -77,7 +77,7 @@ var Bot=function(move,split,shoot){
 		label:"Enemy Split Avoidance",
 		color:'#142121'	
 		}
-	])
+	]);
 }
 
 //size = radius
@@ -227,12 +227,10 @@ Bot.prototype={
 				||this.lastBestAction.organism.name!=bestAction.organism.name
 				||~~this.lastBestAction.fitness[0]!=~~bestAction.fitness[0]
 			){
-				if (bestAction.organism.size>myOrganism.size){
-					if (bestAction.organism.isVirus){
-						console.log("avoiding virus", bestAction.organism.name,bestAction)
-					}else{
+				if(bestAction.organism.isVirus){
+					console.log("avoiding virus", bestAction.organism.name,bestAction)
+				}else if (bestAction.organism.size>myOrganism.size){
 					console.log("avoiding", bestAction.organism.name,bestAction)
-					}
 				}else{
 					console.log("chasing", bestAction.organism.name,bestAction)
 				}
@@ -258,5 +256,20 @@ Bot.prototype={
 	 },
 	move:function(x,y){}, //overwrite these in main_out.js
 	split:function(){},
-	shoot:function(){}
+	shoot:function(){},
+	onDraw:function(ctx,myOrganisms){ //TODO Consider multiple blobs
+		if(this.lastBestAction&&myOrganisms.length>0){
+			var myOrganism=myOrganisms[0]
+			ctx.beginPath()
+
+			if(this.lastBestAction.organism.isVirus||this.lastBestAction.organism.size>myOrganism.size){
+				ctx.strokeStyle='red'
+			}else{
+				ctx.strokeStyle='green'
+			}	
+			ctx.moveTo(myOrganism.x,myOrganism.y)
+			ctx.lineTo(this.lastBestAction.organism.x,this.lastBestAction.organism.y)
+			ctx.stroke()
+		}
+	}
 }

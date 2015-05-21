@@ -381,6 +381,7 @@
         e.translate(-s, -t);
         for (d = 0; d < C.length; d++) C[d].draw();
         for (d = 0; d < q.length; d++) q[d].draw();
+		bot.onDraw(e,g)
         e.restore();
         x && e.drawImage(x, p - x.width - 10, 10);
         D = Math.max(D, Ga());
