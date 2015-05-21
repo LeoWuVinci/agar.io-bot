@@ -95,6 +95,7 @@ Bot.prototype={
 		halfMySize:0,//1
 		splitDist:0 //3
 	},
+	dodgeDist:100, //px TODO dynamically change dodgeDist based on ping
 	calcFitness:function(myOrganism,organism,action){ //map size 11150
 		var distance=10-(Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)-myOrganism.size-organism.size)/1000,
 			fitnessTraits={
@@ -177,7 +178,7 @@ Bot.prototype={
 			var organism=otherOrganisms[i],
 				action
 
-				if (organism.isVirus&&organism.size<myOrganism.size*1.15
+				if (organism.isVirus&&organism.size<myOrganism.size
 							||!organism.isVirus&&organism.size*.85>myOrganism.size
 				){
 					action=new Action(
@@ -186,7 +187,7 @@ Bot.prototype={
 							myOrganism.x+myOrganism.x-organism.x,
 							myOrganism.y+myOrganism.y-organism.y,
 							organism)
-					if(action.fitness[1].distance > 10){
+					if(action.fitness[1].distance > 10-this.dodgeDist/1000){
 						action.fitness[0]+=this.reflex
 						console.log("dodging ",organism.name)
 					}
@@ -222,10 +223,9 @@ Bot.prototype={
 			bestAction.x+=Math.random()*this.randomness*2-this.randomness
 			bestAction.y+=Math.random()*this.randomness*2-this.randomness
 			this.doAction(bestAction)
-			bestAction.fitness[0]=~~bestAction.fitness[0]
 			if(!this.lastBestAction
 				||this.lastBestAction.organism.name!=bestAction.organism.name
-				||this.lastBestAction.fitness[0]!=bestAction.fitness[0]
+				||~~this.lastBestAction.fitness[0]!=~~bestAction.fitness[0]
 			){
 				if (bestAction.organism.size>myOrganism.size){
 					if (bestAction.organism.isVirus){
