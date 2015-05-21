@@ -59,7 +59,7 @@ Consideration.prototype={
 	   label:'',
 	   color:'',
 	   get value(){
-		   return this.weight;
+		   return ~~this.weight;
 	   }	
 }
 
@@ -118,6 +118,7 @@ Bot.prototype={
 			1,
 			'#33EE33'
 		),
+		/*
 		new Consideration(
 			"Split based on Size",
 			function(myOrganism,otherOrganism,actionType){
@@ -135,6 +136,7 @@ Bot.prototype={
 			0,
 			'#FF0000'
 		)
+		*/
 	],
 	dodgeDist:100, //px TODO dynamically change dodgeDist based on ping
 	calcFitness:function(myOrganism,organism,action){ //map size 11150
@@ -168,6 +170,14 @@ Bot.prototype={
 
 		if (myOrganisms.length<1){
 			if(this.currentState!='dead'){
+				for(var i=0;i<this.considerations.length;i++){
+					if(this.scoreHistory>this.gameHistory[this.gameHistory.length-1]){
+						this.considerations[i].weight+=Math.random()*2	
+					}else{
+						this.considerations[i].weight+=Math.random()*6	
+					}
+				}
+
 				this.gameHistory.push([
 					this.lastStateChangeDate,
 					new Date,	
