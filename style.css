@@ -8,3 +8,9 @@
 	bottom:5px;
 	text-align:center;
 }
+
+#ip-address {
+	position:fixed;
+	width:100%;
+	text-align:center;
+}

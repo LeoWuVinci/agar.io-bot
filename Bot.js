@@ -2,7 +2,6 @@
 Advance Tactics
 1. Using viruses to trap players
 2. Shoot at viruses to break large blobs
-
    */
 
 var Action=function(type,fitness,x,y,organism){
@@ -71,16 +70,14 @@ Consideration.prototype={
 }
 
 var Bot=function(move,split,shoot){
-	this.move=move;
-	this.split=split;
-	this.shoot=shoot;
+	BotInterface.call(this,move,split,shoot)
 	this.behaviorChart=new Chart(behaviorCtx).Doughnut(this.considerations)
 }
 
+Bot.prototype=Object.create(BotInterface.prototype)
 //size = radius
 //score=size*size/100
-Bot.prototype={
-	randomness:0, //or noise?
+BotPrototype={
 	splitted:false,
 	considerations:[
 		new Consideration(
@@ -98,7 +95,7 @@ Bot.prototype={
 		new Consideration(
 			"Nearest Target",
 			function(myOrganism,otherOrganism,actionType){
-				return -(Math.pow(Math.pow(myOrganism.x-otherOrganism.x,2)+Math.pow(myOrganism.y-otherOrganism.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+				return -(Math.pow(Math.pow(myOrganism.x+myOrganism.dx-otherOrganism.x-otherOrganism.dx,2)+Math.pow(myOrganism.y+myOrganism.dy-otherOrganism.y-otherOrganism.dy,2),.5)-myOrganism.size-otherOrganism.size)/1000
 			},
 			1,
 			'#46BFBD'
@@ -106,7 +103,7 @@ Bot.prototype={
 		new Consideration(
 			"Map Edge Avoidance",
 			function(myOrganism,otherOrganism,actionType){
-				return -(Math.pow(Math.pow(5575-otherOrganism.x,2)+Math.pow(5575-otherOrganism.y,2),.5))/5575
+				return -(Math.pow(Math.pow(5575-otherOrganism.x-otherOrganism.dx,2)+Math.pow(5575-otherOrganism.y-otherOrganism.dy,2),.5))/5575
 			},
 			1,
 			'#FDB45C'
@@ -161,27 +158,90 @@ Bot.prototype={
 	scoreHistory:[],
 	myOrganisms:[],
 	onTick:function(organisms,myOrganisms,score){
-		var myOrganism=myOrganisms[0],
-			otherOrganisms=organisms.filter(function(organism){
-				if(organism.x2){
-					organism.dx=organism.x-organism.x2
+		var otherOrganisms=organisms.filter(function(organism){
+			if(organism.x2){
+				organism.dx=organism.x-organism.x2
+
+				if(organism.pdx){
+					organism.dx2=organism.dx-organism.pdx
+					organism.px=organism.x+organism.dx+organism.dx2
 				}
-				if(organism.y2){
-					organism.dy=organism.y-organism.y2
+				organism.pdx=organism.dx
+			}
+			if(organism.y2){
+				organism.dy=organism.y-organism.y2
+
+				if(organism.pdy){
+					organism.dy2=organism.dy-organism.pdy
+					organism.py=organism.y+organism.dy+organism.dy2
 				}
-				organism.x2=organism.x
-				organism.y2=organism.y
-				return myOrganisms.indexOf(organism)==-1
-			})
+				organism.pdy=organism.dy
+			}
+			organism.x2=organism.x
+			organism.y2=organism.y
+			return myOrganisms.indexOf(organism)==-1
+		})
 		this.myOrganisms=myOrganisms
+
+		var bestActions=[]
+		for(var i=0;i<myOrganisms.length;i++){
+			bestActions.push(this.findBestAction(otherOrganisms,myOrganisms[i],score))
+		}
+		if (bestActions.length){
+			var myOrganism=myOrganisms[0],
+				bestAction=bestActions[0]
+			//Eliminates drag against invisible wall
+			if (bestAction.x+myOrganism.size>11200){
+				bestAction.x=11200-myOrganism.size;
+				bestAction.y+=bestAction.y-myOrganism.y
+			}else if(bestAction.x-myOrganism.size<0){
+				bestAction.x=myOrganism.size;
+				bestAction.y+=bestAction.y-myOrganism.y
+			}
+			if (bestAction.y+myOrganism.size>11200){
+				bestAction.y=11200-myOrganism.size;
+				bestAction.x+=bestAction.x-myOrganism.x
+			}else if(bestAction.y-myOrganism.size<0){
+				bestAction.y=myOrganism.size;
+				bestAction.x+=bestAction.x-myOrganism.x
+			}
+
+			switch(bestAction.type){
+				case 'move':
+					this.move(bestAction.x,bestAction.y)
+				break;
+				case 'split':
+					this.move(bestAction.x,bestAction.y)
+					this.splitted=true
+					this.split()
+				break;
+				case 'shoot':
+					this.move(bestAction.x,bestAction.y)
+					this.shoot()
+				break;	
+			}
+			
+			if(!this.lastBestAction
+				||this.lastBestAction.organism.name!=bestAction.organism.name
+			){
+				if(bestAction.organism.isVirus){
+					console.log("avoiding virus", bestAction.organism.name,[bestAction])
+				}else if (bestAction.organism.size>myOrganism.size){
+					console.log("avoiding", bestAction.organism.name,[bestAction])
+				}else{
+					console.log("chasing", bestAction.organism.name,[bestAction])
+				}
+			}
+			this.lastBestAction=bestAction
+		}
 
 		if (myOrganisms.length<1){
 			if(this.currentState&&this.currentState!='dead'){
 				for(var i=0;i<this.considerations.length;i++){
 					if(this.scoreHistory>this.gameHistory[this.gameHistory.length-1]){
-						this.considerations[i].weight+=Math.random()*2	
+						this.considerations[i].weight+=Math.round(Math.random()*2)
 					}else{
-						this.considerations[i].weight*=1+Math.random()*2	
+						this.considerations[i].weight+=Math.round(Math.random()*10)	
 					}
 				}
 
@@ -239,114 +299,65 @@ Bot.prototype={
 			this.currentState='alive'
 		}
 
-		var bestAction=null
+	},
+	findBestAction:function(otherOrganisms,myOrganism,score){
+		var bestAction
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
 				action
 
 			var tickCount=Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)/Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5);
 
-
-				if (organism.isVirus&&organism.size<myOrganism.size
-							||!organism.isVirus&&organism.size*.85>myOrganism.size
-				){
-					if(Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)-myOrganism.size-organism.size<this.dodgeDist){
-						action=new Action(
-							'move',
-							this.calcFitness(myOrganism,organism),
-							myOrganism.x+myOrganism.x-organism.x,
-							myOrganism.y+myOrganism.y-organism.y,
-							organism)
-						action.fitness[0]*=2
-						console.log("dodging ",organism.name)
-					}else{
-						action=new Action(
-							'move',
-							this.calcFitness(myOrganism,organism),
-							myOrganism.x+myOrganism.x-(organism.x+tickCount*organism.dx),
-							myOrganism.y+myOrganism.y-(organism.y+tickCount*organism.dy),
-							organism)
-					}
-				}else if (!organism.isVirus
-						&&organism.size<myOrganism.size*.85){
-
-					var moveFitness=this.calcFitness(myOrganism,organism),
-						splitFitness=this.calcFitness(myOrganism,organism,'split')
-					if (
-							organism.size<myOrganism.size*.3
-							||organism.size>myOrganism.size*.425
-							||moveFitness[0]>=splitFitness[0]
-							||myOrganisms.length>1
-							||myOrganism.size<65
-							||this.splitted
-							||Math.pow(Math.pow(organism.x-myOrganism.x,2)+Math.pow(organism.y-myOrganism.y,2),.5)>myOrganism.size*3
-					){
-						if(myOrganisms.length>1){
-							this.splitted=false //resets the split mechanism early
-						}
-						action=new Action('move',moveFitness,organism.x+tickCount*organism.dx,organism.y+tickCount*organism.dy,organism)
-					}else{
-						action=new Action('split',splitFitness,organism.x,organism.y,organism)
-					}
+			if (organism.isVirus&&organism.size<myOrganism.size
+						||!organism.isVirus&&organism.size*.85>myOrganism.size
+			){
+				if(Math.pow(Math.pow(myOrganism.x+myOrganism.dx-organism.x-organism.dx,2)+Math.pow(myOrganism.y+myOrganism.dy-organism.y-organism.dy,2),.5)-myOrganism.size-organism.size<0){
+					action=new Action(
+						'move',
+						this.calcFitness(myOrganism,organism),
+						myOrganism.x+myOrganism.x-organism.x,
+						myOrganism.y+myOrganism.y-organism.y,
+						organism)
+					action.fitness[0]*=2
+					console.log("dodging ",organism.name)
+				}else{
+					action=new Action(
+						'move',
+						this.calcFitness(myOrganism,organism),
+						(myOrganism.x+myOrganism.dx)*2-(organism.x+tickCount*organism.dx),
+						(myOrganism.y+myOrganism.dy)*2-(organism.y+tickCount*organism.dy),
+						organism)
 				}
+			}else if (!organism.isVirus
+					&&organism.size<myOrganism.size*.85){
 
-			if(!bestAction||bestAction.fitness[0]<action.fitness[0]){
+				var moveFitness=this.calcFitness(myOrganism,organism),
+					splitFitness=this.calcFitness(myOrganism,organism,'split')
+				if (
+						organism.size<myOrganism.size*.3
+						||organism.size>myOrganism.size*.425
+						||moveFitness[0]>=splitFitness[0]
+						||myOrganism.size<65
+						||this.splitted
+						||Math.pow(Math.pow(organism.x-myOrganism.x,2)+Math.pow(organism.y-myOrganism.y,2),.5)>myOrganism.size*3
+				){
+					/* FIXME SPlitter needs to be rethought
+					if(myOrganisms.length>1){
+						this.splitted=false //resets the split mechanism early
+					}
+					*/
+					action=new Action('move',moveFitness,organism.x+organism.dx+tickCount*organism.dx,organism.y+organism.dy+tickCount*organism.dy,organism)
+				}else{
+					action=new Action('split',splitFitness,organism.x,organism.y,organism)
+				}
+			}
+
+			if(!bestAction||bestAction.fitness[0]<action.fitness[0]){ //TODO Sort the actions instead
 				bestAction=action
 			}
 		}
-
-		if(bestAction){
-			bestAction.x+=Math.random()*this.randomness*2-this.randomness
-			bestAction.y+=Math.random()*this.randomness*2-this.randomness
-
-			//Eliminates drag against invisible wall
-			if (bestAction.x+myOrganism.size>11200){
-				bestAction.x=11200-myOrganism.size;
-				bestAction.y*=10
-			}else if(bestAction.x-myOrganism.size<0){
-				bestAction.x=myOrganism.size;
-				bestAction.y*=10
-			}
-			if (bestAction.y+myOrganism.size>11200){
-				bestAction.y=11200-myOrganism.size;
-				bestAction.x*=10
-			}else if(bestAction.y-myOrganism.size<0){
-				bestAction.y=myOrganism.size;
-				bestAction.x*=10
-			}
-
-			switch(bestAction.type){
-				case 'move':
-					this.move(bestAction.x,bestAction.y)
-				break;
-				case 'split':
-					this.move(bestAction.x,bestAction.y)
-					this.splitted=true
-					this.split()
-				break;
-				case 'shoot':
-					this.move(bestAction.x,bestAction.y)
-					this.shoot()
-				break;	
-			 }
-
-			if(!this.lastBestAction
-				||this.lastBestAction.organism.name!=bestAction.organism.name
-			){
-				if(bestAction.organism.isVirus){
-					console.log("avoiding virus", bestAction.organism.name,bestAction)
-				}else if (bestAction.organism.size>myOrganism.size){
-					console.log("avoiding", bestAction.organism.name,bestAction)
-				}else{
-					console.log("chasing", bestAction.organism.name,bestAction)
-				}
-			}
-			this.lastBestAction=bestAction
-		}
+		return bestAction
 	},
-	move:function(x,y){}, //overwrite these in main_out.js
-	split:function(){},
-	shoot:function(){},
 	draw:function(ctx){ //TODO Consider multiple blobs
 		var myOrganisms=this.myOrganisms
 		if(this.lastBestAction&&myOrganisms.length>0){
@@ -369,4 +380,7 @@ Bot.prototype={
 			ctx.stroke()
 		}
 	}
+}
+for(key in BotPrototype){
+	Bot.prototype[key]=BotPrototype[key]
 }

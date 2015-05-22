@@ -7,7 +7,7 @@
 		{
 			"matches":["http://agar.io/*"],
 			"css":["style.css"],
-			"js":["ext/jquery.js","ext/Chart.js","quadtree.js","Bot.js","main_out.js", "script.js"],
+			"js":["ext/jquery.js","ext/Chart.js","quadtree.js","BotInterface.js","Bot.js","main_out.js"],
 			"run_at":"document_end"
 		}
 	],

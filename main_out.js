@@ -108,6 +108,7 @@
             },
             success: function(a) {
                 a = a.split("\n");
+				r('#ip-address').html(a[0])	
                 pa("ws://" + a[0])
             },
             dataType: "text",
@@ -781,4 +782,20 @@
 		bot.onTick(q,g,D)
 		sendMove()
 	}
+
+	r('body').append('<div id="ip-address"></div>')
 })(window,jQuery)
+
+$('#region')
+	.after($('#region').removeAttr('onchange').clone().change(function(e){
+		setRegion($('#region').val());$('.region-message').hide();$('.region-message.'+$('#region').val()).show();$('.btn-needs-server').prop('disabled', false);	
+	})).remove()
+
+$('#playBtn')
+	.after($('#playBtn').removeAttr('onclick').clone().click(function(e){
+		setNick(document.getElementById('nick').value); return false;
+	})).remove()
+
+$('#gamemode').remove()
+
+$('#playBtn').next().remove()
