@@ -22,7 +22,7 @@ Action.prototype={
 		scores=[]
 
 		for(var i=0;i<considerations.length;i++){
-			var score=considerations[i].consider(this.myOrganism,this.otherOrganism,this)
+			var score=considerations[i].normalizedCalc(this.myOrganism,this.otherOrganism,this)
 			scores.push(score)
 			totalWeightedScore+=(10+score)*considerations[i].weight
 		}
@@ -30,21 +30,29 @@ Action.prototype={
 	}
 }
 
-//Map is 11200x11200
-var Consideration=function(label,consider,weight,color){
+var Consideration=function(label,calc,weight,color){
 	this.weight=weight;
 	this.label=label;
 	this.color=color;
-	this.consider=consider;	
+	this.calc=calc;	
 }
 
 Consideration.prototype={
 	weight:1,
-	   label:'',
-	   color:'',
-	   get value(){
-		   return ~~this.weight;
-	   }	
+	label:'',
+	color:'',
+	get value(){
+		return ~~this.weight;
+   	},
+	calc:function(myOrganism,otherOrganism,action){},
+	min:100000,
+	max:0,
+	normalizedCalc:function(myOrganism,otherOrganism,action){
+		var value=this.calc(myOrganism,otherOrganism,action)
+		if(value<this.min){this.min=value}
+		if(value>this.max){this.max=value}
+		return (value-this.min)/(this.max-this.min)
+	},	
 }
 
 var Bot=function(move,split,shoot){
@@ -289,6 +297,7 @@ BotPrototype={
 			}
 
 			/* reduce invisible wall drag */
+			//Map is I believe 11200x11200
 			//TODO Curve away from the wall
 			if (action.x+myOrganism.size>11200){
 				action.x=11200-myOrganism.size;
