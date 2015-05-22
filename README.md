@@ -25,3 +25,8 @@ Create action generators
 
 ### Looking at Steps Ahead
 Breath-first search using the fitness score and time
+
+## Possible meta games
+* Hide'n'seek
+* Sniper
+* Bet the score

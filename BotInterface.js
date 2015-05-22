@@ -5,7 +5,7 @@ var BotInterface=function(move,split,shoot){
 }
 
 BotInterface.prototype={
-	onTick:function(organisms,myOrganisms,score){},
+	tick:function(organisms,myOrganisms,score){},
 	move:function(x,y){},
 	split:function(){},
 	shoot:function(){},

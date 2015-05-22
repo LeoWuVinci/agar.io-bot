@@ -4,19 +4,47 @@ Advance Tactics
 2. Shoot at viruses to break large blobs
    */
 
-var Action=function(type,fitness,x,y,organism){
+var Action=function(type,x,y,myOrganism,otherOrganism){
 	this.type=type
 	this.x=x
 	this.y=y
-	this.fitness=fitness
-	this.organism=organism
+	this.myOrganism=myOrganism
+	this.otherOrganism=otherOrganism
 }
 Action.prototype={
 	type:'', //move,split,shoot
 	x:0,
 	y:0,
-	fitness:0,
-	organism:null
+	myOrganism:null,
+	otherOrganism:null,
+	calcImportance:function(considerations){
+		fitnessScore=0
+		considerationValues=[]
+
+		/*
+		var otherOrganism={
+			px:0,
+		   py:0,
+		   size:0
+		}
+
+		for(var i=0;i<this.otherOrganisms.length;i++){
+			for(key in otherOrganism){
+				otherOrganism[key]+=this.otherOrganisms[i][key]
+			}
+		}
+
+		for(key in otherOrganism){
+			otherOrganism[key]/=this.otherOrganisms.length
+		}
+*/
+		for(var i=0;i<considerations.length;i++){
+			var considerationValue=considerations[i].consider(this.myOrganism,this.otherOrganism,this)
+			considerationValues.push(considerationValue)
+			fitnessScore+=(10+considerationValue)*considerations[i].weight
+		}
+		return [fitnessScore,considerationValues]
+	}
 }
 
 //Map is 11200x11200
@@ -82,7 +110,7 @@ BotPrototype={
 	considerations:[
 		new Consideration(
 			"Size Difference",
-			function(myOrganism,otherOrganism,actionType){
+			function(myOrganism,otherOrganism,action){
 				if(otherOrganism.isVirus){
 					return (myOrganism.size-otherOrganism.size)/2000-2	
 				}else{
@@ -94,23 +122,40 @@ BotPrototype={
 		),
 		new Consideration(
 			"Nearest Target",
-			function(myOrganism,otherOrganism,actionType){
-				return -(Math.pow(Math.pow(myOrganism.x+myOrganism.dx-otherOrganism.x-otherOrganism.dx,2)+Math.pow(myOrganism.y+myOrganism.dy-otherOrganism.y-otherOrganism.dy,2),.5)-myOrganism.size-otherOrganism.size)/1000
+			function(myOrganism,otherOrganism,action){
+				if(!otherOrganism.isVirus&&myOrganism.size>otherOrganism.size){
+					return 1-(Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+				}else{
+					return (Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+				}
 			},
 			1,
 			'#46BFBD'
 		),
 		new Consideration(
+			"Too close for comfort",
+			function(myOrganism,otherOrganism,action){
+				if(myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0){
+					console.log("dodging ",otherOrganism.name)
+					action.x=myOrganism.px*2-otherOrganism.px
+					action.y=myOrganism.py*2-otherOrganism.py
+				}
+				return (myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0)*100
+			},
+			1,
+			'#EEEEEE'
+		),
+		new Consideration(
 			"Map Edge Avoidance",
-			function(myOrganism,otherOrganism,actionType){
-				return -(Math.pow(Math.pow(5575-otherOrganism.x-otherOrganism.dx,2)+Math.pow(5575-otherOrganism.y-otherOrganism.dy,2),.5))/5575
+			function(myOrganism,otherOrganism,action){
+				return -(Math.pow(Math.pow(5575-otherOrganism.px,2)+Math.pow(5575-otherOrganism.py,2),.5))/5575
 			},
 			1,
 			'#FDB45C'
 		),
 		new Consideration(
 			"Splitter Avoidance",
-			function(myOrganism,otherOrganism,actionType){
+			function(myOrganism,otherOrganism,action){
 				if (otherOrganism.isVirus){
 					return -1
 				}else{
@@ -140,25 +185,20 @@ BotPrototype={
 		)
 		*/
 	],
-	dodgeDist:100, //px TODO dynamically change dodgeDist based on ping
-	calcFitness:function(myOrganism,organism,action){ //map size 11150
-		fitnessScore=0
-		considerationValues=[]
-		for(var i=0;i<this.considerations.length;i++){
-			var considerationValue=this.considerations[i].consider(myOrganism,organism,action)
-			considerationValues.push(considerationValue)
-			fitnessScore+=(10+considerationValue)*this.considerations[i].weight
-		}
-		return [fitnessScore,considerationValues]
-	},
 	lastBestAction:"",
 	currentState:'',
 	lastStateChangeDate:null,
 	gameHistory:[],
 	scoreHistory:[],
 	myOrganisms:[],
-	onTick:function(organisms,myOrganisms,score){
+	tick:function(organisms,myOrganisms,score){
 		var otherOrganisms=organisms.filter(function(organism){
+			if(!organism.px){
+				organism.px=organism.x
+			}
+			if(!organism.py){
+				organism.py=organism.y
+			}
 			if(organism.x2){
 				organism.dx=organism.x-organism.x2
 
@@ -222,14 +262,14 @@ BotPrototype={
 			}
 			
 			if(!this.lastBestAction
-				||this.lastBestAction.organism.name!=bestAction.organism.name
+				||this.lastBestAction.otherOrganism.name!=bestAction.otherOrganism.name
 			){
-				if(bestAction.organism.isVirus){
-					console.log("avoiding virus", bestAction.organism.name,[bestAction])
-				}else if (bestAction.organism.size>myOrganism.size){
-					console.log("avoiding", bestAction.organism.name,[bestAction])
+				if(bestAction.otherOrganism.isVirus){
+					console.log("avoiding virus", bestAction.otherOrganism.name,[bestAction])
+				}else if (bestAction.otherOrganism.size>myOrganism.size){
+					console.log("avoiding", bestAction.otherOrganism.name,[bestAction])
 				}else{
-					console.log("chasing", bestAction.organism.name,[bestAction])
+					console.log("chasing", bestAction.otherOrganism.name,[bestAction])
 				}
 			}
 			this.lastBestAction=bestAction
@@ -301,42 +341,36 @@ BotPrototype={
 
 	},
 	findBestAction:function(otherOrganisms,myOrganism,score){
-		var bestAction
+		var actions=[]
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
 				action
 
-			var tickCount=Math.pow(Math.pow(myOrganism.x-organism.x,2)+Math.pow(myOrganism.y-organism.y,2),.5)/Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5);
+			var velocity=Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5);
+			var tickCount;
+
+			if (velocity){
+				tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/velocity;
+			}else{
+				tickCount=0
+			}
 
 			if (organism.isVirus&&organism.size<myOrganism.size
 						||!organism.isVirus&&organism.size*.85>myOrganism.size
 			){
-				if(Math.pow(Math.pow(myOrganism.x+myOrganism.dx-organism.x-organism.dx,2)+Math.pow(myOrganism.y+myOrganism.dy-organism.y-organism.dy,2),.5)-myOrganism.size-organism.size<0){
+						
 					action=new Action(
 						'move',
-						this.calcFitness(myOrganism,organism),
-						myOrganism.x+myOrganism.x-organism.x,
-						myOrganism.y+myOrganism.y-organism.y,
+						myOrganism.px*2-(organism.px+tickCount*organism.dx),
+						myOrganism.py*2-(organism.py+tickCount*organism.dy),
+						myOrganism,
 						organism)
-					action.fitness[0]*=2
-					console.log("dodging ",organism.name)
-				}else{
-					action=new Action(
-						'move',
-						this.calcFitness(myOrganism,organism),
-						(myOrganism.x+myOrganism.dx)*2-(organism.x+tickCount*organism.dx),
-						(myOrganism.y+myOrganism.dy)*2-(organism.y+tickCount*organism.dy),
-						organism)
-				}
 			}else if (!organism.isVirus
 					&&organism.size<myOrganism.size*.85){
-
-				var moveFitness=this.calcFitness(myOrganism,organism),
-					splitFitness=this.calcFitness(myOrganism,organism,'split')
-				if (
+				if (true||
 						organism.size<myOrganism.size*.3
 						||organism.size>myOrganism.size*.425
-						||moveFitness[0]>=splitFitness[0]
+				//		||moveFitness[0]>=splitFitness[0]
 						||myOrganism.size<65
 						||this.splitted
 						||Math.pow(Math.pow(organism.x-myOrganism.x,2)+Math.pow(organism.y-myOrganism.y,2),.5)>myOrganism.size*3
@@ -346,17 +380,62 @@ BotPrototype={
 						this.splitted=false //resets the split mechanism early
 					}
 					*/
-					action=new Action('move',moveFitness,organism.x+organism.dx+tickCount*organism.dx,organism.y+organism.dy+tickCount*organism.dy,organism)
+					action=new Action('move',organism.px+tickCount*organism.dx,organism.py+tickCount*organism.dy,myOrganism,organism)
 				}else{
-					action=new Action('split',splitFitness,organism.x,organism.y,organism)
+					action=new Action('split',organism.x,organism.y,myOrganism,organism) //FIXME
 				}
 			}
 
-			if(!bestAction||bestAction.fitness[0]<action.fitness[0]){ //TODO Sort the actions instead
+			actions.push(action)
+/*
+			if(!bestAction||bestAction.calcImportance(this.considerations)[0]<action.calcImportance(this.considerations)[0]){ //TODO Sort the actions instead
 				bestAction=action
 			}
+			*/
 		}
-		return bestAction
+
+		actions.sort(function(a,b){
+			return b.calcImportance(this.considerations)[0]-a.calcImportance(this.considerations)[0]		
+				}.bind(this)) //TODO verify the sorting is in the correct order
+
+		if (actions.length > 1){
+			var imaginaryOrganism={
+				px:0,
+			   py:0,
+			   dx:0,
+			   dy:0,
+			   size:0
+			}
+
+			var j=0;
+			for(var i=0;i<actions.length;i++){
+				if(!actions[i].otherOrganism.isVirus&&myOrganism.size<actions[i].otherOrganism.size) {
+					for(key in imaginaryOrganism){
+						imaginaryOrganism[key]+=actions[i].otherOrganism[key]
+					}
+					j++;
+					if(j==1){
+						break;
+					}
+				}
+			}
+
+			if (!j){
+				for(key in imaginaryOrganism){
+					imaginaryOrganism[key]/=j+1
+				}
+
+				imaginaryOrganism.isVirus=false
+				imaginaryOrganism.name="Imaginary Organism"
+
+				actions.push(this.findBestAction([imaginaryOrganism],myOrganism,score))
+
+				actions.sort(function(a,b){
+					return b.calcImportance(this.considerations)[0]-a.calcImportance(this.considerations)[0]		
+						}.bind(this)) //TODO verify the sorting is in the correct order
+			}
+		}
+		return actions[0]
 	},
 	draw:function(ctx){ //TODO Consider multiple blobs
 		var myOrganisms=this.myOrganisms
@@ -364,13 +443,13 @@ BotPrototype={
 			var myOrganism=myOrganisms[0]
 			ctx.beginPath()
 
-			if(this.lastBestAction.organism.isVirus||this.lastBestAction.organism.size>myOrganism.size){
+			if(this.lastBestAction.otherOrganism.isVirus||this.lastBestAction.otherOrganism.size>myOrganism.size){
 				ctx.strokeStyle='red'
 			}else{
 				ctx.strokeStyle='green'
 			}	
 			ctx.moveTo(myOrganism.x,myOrganism.y)
-			ctx.lineTo(this.lastBestAction.organism.x,this.lastBestAction.organism.y)
+			ctx.lineTo(this.lastBestAction.otherOrganism.x,this.lastBestAction.otherOrganism.y)
 			ctx.stroke()
 			
 			ctx.beginPath()

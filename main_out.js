@@ -779,7 +779,7 @@
 
 	var sendMove=G
 	G=function(){
-		bot.onTick(q,g,D)
+		bot.tick(q,g,D)
 		sendMove()
 	}
 
