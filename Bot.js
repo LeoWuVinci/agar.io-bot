@@ -22,15 +22,18 @@ Action.prototype={
 		scores=[]
 
 		for(var i=0;i<considerations.length;i++){
-			var score=considerations[i].normalizedCalc(this.myOrganism,this.otherOrganism,this)
-			scores.push(score)
-			totalWeightedScore+=(10+score)*considerations[i].weight
+			if(considerations[i].isActive(this.myOrganism,this.otherOrganism,this)){//TODO use Array.filter instead	
+				var score=considerations[i].normalizedCalc(this.myOrganism,this.otherOrganism,this)
+				scores.push(score)
+				totalWeightedScore+=score*considerations[i].weight
+			} //FIXME Since considerations can be disabled, weighted average is needed
 		}
 		return [totalWeightedScore,scores] //TODO Not sure I like this return hmm
 	}
 }
 
-var Consideration=function(label,calc,weight,color){
+var Consideration=function(label,isActive,calc,weight,color){
+	this.isActive=isActive; //TODO Change to filter?
 	this.weight=weight;
 	this.label=label;
 	this.color=color;
@@ -40,13 +43,13 @@ var Consideration=function(label,calc,weight,color){
 Consideration.prototype={
 	weight:1,
 	label:'',
-	color:'',
+	color:'', //TODO MD5 the label to generate a unique color
 	get value(){
 		return ~~this.weight;
    	},
 	calc:function(myOrganism,otherOrganism,action){},
-	min:100000,
-	max:0,
+	min:Number.MAX_VALUE,
+	max:Number.MIN_VALUE,
 	normalizedCalc:function(myOrganism,otherOrganism,action){
 		var value=this.calc(myOrganism,otherOrganism,action)
 		if(value<this.min){this.min=value}
@@ -69,11 +72,12 @@ BotPrototype={
 	considerations:[
 		new Consideration(
 			"Size Difference",
+			function(){return true},
 			function(myOrganism,otherOrganism,action){
 				if(otherOrganism.isVirus){
-					return (myOrganism.size-otherOrganism.size)/2000-2	
+					return (myOrganism.size-otherOrganism.size)	
 				}else{
-					return -Math.abs(myOrganism.size-otherOrganism.size)/100
+					return -Math.abs(myOrganism.size-otherOrganism.size)
 				}
 			},
 			1,
@@ -81,11 +85,12 @@ BotPrototype={
 		),
 		new Consideration(
 			"Nearest Target",
+			function(){return true},
 			function(myOrganism,otherOrganism,action){
 				if(!otherOrganism.isVirus&&myOrganism.size>otherOrganism.size){
-					return 1-(Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+					return -(Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size)
 				}else{
-					return (Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size)/1000
+					return Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size
 				}
 			},
 			1,
@@ -93,33 +98,32 @@ BotPrototype={
 		),
 		new Consideration(
 			"Too close for comfort",
+			function(){return true},
 			function(myOrganism,otherOrganism,action){
 				if(myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0){
 					console.log("dodging ",otherOrganism.name)
 					action.x=myOrganism.px*2-otherOrganism.px
 					action.y=myOrganism.py*2-otherOrganism.py
 				}
-				return (myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0)*100
+				return myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0
 			},
-			1,
+			10,
 			'#EEEEEE'
 		),
 		new Consideration(
 			"Map Edge Avoidance",
+			function(){return true},
 			function(myOrganism,otherOrganism,action){
-				return -(Math.pow(Math.pow(5575-otherOrganism.px,2)+Math.pow(5575-otherOrganism.py,2),.5))/5575
+				return -Math.pow(Math.pow(5575-otherOrganism.px,2)+Math.pow(5575-otherOrganism.py,2),.5)
 			},
 			1,
 			'#FDB45C'
 		),
 		new Consideration(
 			"Splitter Avoidance",
+			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus},
 			function(myOrganism,otherOrganism,action){
-				if (otherOrganism.isVirus){
-					return -1
-				}else{
-					return -Math.abs(otherOrganism.size-myOrganism.size*2)/100 //likelyhood to stay away from splitters
-				}
+				return -Math.abs(otherOrganism.size-myOrganism.size*2) //likelyhood to stay away from splitters
 			},
 			1,
 			'#33EE33'
