@@ -77,7 +77,7 @@ BotPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			1,
+			2, //TODO lower priority when done making too close for virus
 			'#FF5A5E'	
 		),
 		new Consideration(
@@ -95,7 +95,7 @@ BotPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			1,
+			3,
 			'#AA5A5E'	
 		),
 		new Consideration(
@@ -104,7 +104,7 @@ BotPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size
 			},
-			1,
+			3,
 			'#46BFBD'
 		),
 		new Consideration(
@@ -116,7 +116,7 @@ BotPrototype={
 			function(myOrganism,otherOrganism,action){
 				return Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)+otherOrganism.size
 			},
-			1,
+			2,
 			'#46BF00'
 		),
 		new Consideration(
@@ -124,10 +124,9 @@ BotPrototype={
 			function(myOrganism,otherOrganism){
 				return !otherOrganism.isVirus //TODO take out virus check to give the bot more options
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-otherOrganism.size<myOrganism.size //TODO Figure out the most optimal dodge cushion
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-otherOrganism.size<Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2)+Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2) //TODO Figure out the most optimal dodge cushion
 			},
 			function(myOrganism,otherOrganism,action){
-				console.log("dodging ",otherOrganism.name)
 				action.x=myOrganism.px*2-otherOrganism.px
 				action.y=myOrganism.py*2-otherOrganism.py
 				return true
@@ -145,15 +144,15 @@ BotPrototype={
 			'#FDB45C'
 		),
 		new Consideration(
-			"Splitter Avoidance",
+			"Splitter Avoidance", //TODO don't need to worry about small splits
 			function(myOrganism,otherOrganism,action){
 				return !otherOrganism.isVirus
 					&& myOrganism.size*2<otherOrganism.size	
 				},
 			function(myOrganism,otherOrganism,action){
-				return -Math.abs(otherOrganism.size-myOrganism.size*2.1) //likelyhood to stay away from splitters
+				return myOrganism.size-otherOrganism.size	
 			},
-			1,
+			6,
 			'#33EE33'
 		),
 		/*
@@ -292,7 +291,8 @@ BotPrototype={
 			this.currentState='alive'
 		}else{
 			if(this.currentState=='alive'){
-				
+		
+				/*		
 				for(var i=0;i<this.considerations.length;i++){
 					if(this.scoreHistory>this.gameHistory[this.gameHistory.length-1]){
 						this.considerations[i].weight+=Math.round(Math.random()*2)
@@ -300,7 +300,7 @@ BotPrototype={
 						this.considerations[i].weight+=Math.round(Math.random()*3)	
 					}
 				}
-				
+			*/	
 				this.gameHistory.push([
 					this.lastStateChangeDate,
 					new Date,	
@@ -383,7 +383,7 @@ BotPrototype={
 			return b.calcImportance(this.considerations)-a.calcImportance(this.considerations)	
 				}.bind(this))
 
-		if (false&&actions.length > 1){
+		if (actions.length > 1){
 			var imaginaryOrganism={
 				x:0,
 				y:0,
@@ -484,3 +484,12 @@ BotPrototype={
 for(key in BotPrototype){
 	Bot.prototype[key]=BotPrototype[key]
 }
+
+//TODO Become sentient.
+
+
+
+
+
+
+
