@@ -18,26 +18,24 @@ Action.prototype={
 	myOrganism:null,
 	otherOrganism:null,
 	calcImportance:function(considerations){
-		totalWeightedScore=0
-		scores=[]
+		var values=considerations
+			.filter(function(consideration){return consideration.filter(this.myOrganism,this.otherOrganism,this)},this)
+			.map(function(consideration,i,filteredConsiderations){
+					return consideration.weightedCalc(this.myOrganism,this.otherOrganism,this)/filteredConsiderations.length},this)
 
-		for(var i=0;i<considerations.length;i++){
-			if(considerations[i].isActive(this.myOrganism,this.otherOrganism,this)){//TODO use Array.filter instead	
-				var score=considerations[i].normalizedCalc(this.myOrganism,this.otherOrganism,this)
-				scores.push(score)
-				totalWeightedScore+=score*considerations[i].weight
-			} //FIXME Since considerations can be disabled, weighted average is needed
+		if(values.length){
+			return values.reduce(function(a,b){return a+b})
 		}
-		return [totalWeightedScore,scores] //TODO Not sure I like this return hmm
+		return 0
 	}
 }
 
-var Consideration=function(label,isActive,calc,weight,color){
-	this.isActive=isActive; //TODO Change to filter?
+var Consideration=function(label,filter,calc,weight,color){
+	this.filter=filter;
 	this.weight=weight;
 	this.label=label;
 	this.color=color;
-	this.calc=calc;	
+	this.calc=calc;
 }
 
 Consideration.prototype={
@@ -48,14 +46,18 @@ Consideration.prototype={
 		return ~~this.weight;
    	},
 	calc:function(myOrganism,otherOrganism,action){},
-	min:Number.MAX_VALUE,
-	max:Number.MIN_VALUE,
-	normalizedCalc:function(myOrganism,otherOrganism,action){
+	min:0,
+	max:0,
+	weightedCalc:function(myOrganism,otherOrganism,action){
 		var value=this.calc(myOrganism,otherOrganism,action)
-		if(value<this.min){this.min=value}
-		if(value>this.max){this.max=value}
-		return (value-this.min)/(this.max-this.min)
-	},	
+		if(value<this.min){
+			this.min=value
+		}
+		if(value>this.max){
+			this.max=value
+		}
+		return (value-this.min)/(this.max-this.min)*this.weight
+	},
 }
 
 var Bot=function(move,split,shoot){
@@ -67,45 +69,68 @@ Bot.prototype=Object.create(BotInterface.prototype)
 //score=size*size/100
 BotPrototype={
 	expectedSplitCount:0,
-	onDeath:function(){},
 	onTick:function(){},
 	considerations:[
 		new Consideration(
-			"Size Difference",
-			function(){return true},
+			"Relative Virus Size",
+			function(myOrganism,otherOrganism){return otherOrganism.isVirus},
 			function(myOrganism,otherOrganism,action){
-				if(otherOrganism.isVirus){
-					return (myOrganism.size-otherOrganism.size)	
-				}else{
-					return -Math.abs(myOrganism.size-otherOrganism.size)
-				}
+				return myOrganism.size-otherOrganism.size	
 			},
 			1,
 			'#FF5A5E'	
 		),
 		new Consideration(
-			"Nearest Target",
-			function(){return true},
+			"Relative Enemy Size",
+			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size},
 			function(myOrganism,otherOrganism,action){
-				if(!otherOrganism.isVirus&&myOrganism.size>otherOrganism.size){
-					return -(Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size)
-				}else{
-					return Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size-otherOrganism.size
-				}
+				return -Math.abs(myOrganism.size-otherOrganism.size)
+			},
+			1,
+			'#335A5E'	
+		),
+		new Consideration(
+			"Relative Food Size",
+			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size},
+			function(myOrganism,otherOrganism,action){
+				return -Math.abs(myOrganism.size-otherOrganism.size)
+			},
+			1,
+			'#AA5A5E'	
+		),
+		new Consideration(
+			"Nearest Food",
+			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size},
+			function(myOrganism,otherOrganism,action){
+				return -Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size
 			},
 			1,
 			'#46BFBD'
 		),
 		new Consideration(
-			"Too close for comfort",
-			function(){return true},
+			"Nearest Enemy",
+			function(myOrganism,otherOrganism){
+				return otherOrganism.isVirus&&myOrganism.size>otherOrganism.size
+				||!otherOrganism.isVirus&&myOrganism.size<otherOrganism.size //TODO Break up filter into two different functions
+			},
 			function(myOrganism,otherOrganism,action){
-				if(myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0){
-					console.log("dodging ",otherOrganism.name)
-					action.x=myOrganism.px*2-otherOrganism.px
-					action.y=myOrganism.py*2-otherOrganism.py
-				}
-				return myOrganism.size<otherOrganism.size&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size-otherOrganism.size<0
+				return Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)+otherOrganism.size
+			},
+			1,
+			'#46BF00'
+		),
+		new Consideration(
+			"Too close for comfort",
+			function(myOrganism,otherOrganism){
+				return !otherOrganism.isVirus //TODO take out virus check to give the bot more options
+				&&myOrganism.size<otherOrganism.size
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-otherOrganism.size<myOrganism.size //TODO Figure out the most optimal dodge cushion
+			},
+			function(myOrganism,otherOrganism,action){
+				console.log("dodging ",otherOrganism.name)
+				action.x=myOrganism.px*2-otherOrganism.px
+				action.y=myOrganism.py*2-otherOrganism.py
+				return true
 			},
 			10,
 			'#EEEEEE'
@@ -114,16 +139,19 @@ BotPrototype={
 			"Map Edge Avoidance",
 			function(){return true},
 			function(myOrganism,otherOrganism,action){
-				return -Math.pow(Math.pow(5575-otherOrganism.px,2)+Math.pow(5575-otherOrganism.py,2),.5)
+				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
 			},
 			1,
 			'#FDB45C'
 		),
 		new Consideration(
 			"Splitter Avoidance",
-			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus},
 			function(myOrganism,otherOrganism,action){
-				return -Math.abs(otherOrganism.size-myOrganism.size*2) //likelyhood to stay away from splitters
+				return !otherOrganism.isVirus
+					&& myOrganism.size*2<otherOrganism.size	
+				},
+			function(myOrganism,otherOrganism,action){
+				return -Math.abs(otherOrganism.size-myOrganism.size*2.1) //likelyhood to stay away from splitters
 			},
 			1,
 			'#33EE33'
@@ -154,6 +182,39 @@ BotPrototype={
 	gameHistory:[],
 	scoreHistory:[],
 	myOrganisms:[],
+	simulateAction:function(otherOrganisms,myOrganisms,action){
+		var clonedKeys=['x','y','px','py','dx','dy','size','name','isVirus'],
+			clonedOtherOrganisms=otherOrganisms.map(function(organism){
+				var clone={}
+				for(var i=0;i<clonedKeys.length;i++){
+					clone[clonedKeys[i]]=organism[clonedKeys[i]]//TODO move organisms	
+				}
+				return clone	
+			}),
+			clonedMyOrganisms=myOrganisms.map(function(organism){
+				var clone={}
+				for(var i=0;i<clonedKeys.length;i++){
+					clone[clonedKeys[i]]=organism[clonedKeys[i]]	
+				}
+				return clone	
+			})
+
+		for(var i=0;i<clonedMyOrganisms.length;i++){
+			clonedMyOrganisms[i].x=action.x
+			clonedMyOrganisms[i].y=action.y
+
+			clonedMyOrganisms[i].px=action.x
+			clonedMyOrganisms[i].py=action.y
+		}
+
+		clonedOtherOrganisms=clonedOtherOrganisms.filter(function(organism){
+			return clonedMyOrganisms[0].x!=organism.px||clonedMyOrganisms[0].y!=organism.py
+		})
+		return {
+			otherOrganisms:clonedOtherOrganisms,
+			myOrganisms:clonedMyOrganisms
+		}
+	},
 	tick:function(organisms,myOrganisms,score){
 		var otherOrganisms=organisms.filter(function(organism){
 			if(!organism.x2){
@@ -186,59 +247,60 @@ BotPrototype={
 
 			return myOrganisms.indexOf(organism)==-1
 		})
-		this.myOrganisms=myOrganisms
 
-		if(myOrganisms.length>=expectedSplitCount){
+		if(myOrganisms.length>=this.expectedSplitCount){
 			this.expectedSplitCount=0
 		}
 
-		var actions=[]
-		for(var i=0;i<myOrganisms.length;i++){
-			actions.push(this.findBestAction(otherOrganisms,myOrganisms[i],score))
-		}
-		if (actions.length){
-			var myOrganism=myOrganisms[0],
-				action=actions[0]
+		if (myOrganisms.length){
+			var action=this.findBestAction(otherOrganisms,myOrganisms,0)
 			
-			switch(action.type){
-				case 'move':
-					this.move(action.x,action.y)
-				break;
-				case 'split':
-					this.move(action.x,action.y)
-					this.expectedSplitCount=myOrganisms.length*2 //FIXME Doesn't consider half splits
-					this.split()
-				break;
-				case 'shoot':
-					this.move(action.x,action.y)
-					this.shoot()
-				break;	
-			}
-			
-			if(!this.lastAction
-				||this.lastAction.otherOrganism.name!=action.otherOrganism.name
-			){
-				if(action.otherOrganism.isVirus){
-					console.log("avoiding virus", action.otherOrganism.name,[action])
-				}else if (action.otherOrganism.size>myOrganism.size){
-					console.log("avoiding", action.otherOrganism.name,[action])
-				}else{
-					console.log("chasing", action.otherOrganism.name,[action])
+			if (action){
+				switch(action.type){
+					case 'move':
+						this.move(action.x,action.y)
+					break;
+					case 'split':
+						this.move(action.x,action.y)
+						this.expectedSplitCount=myOrganisms.length*2 //FIXME Doesn't consider half splits
+						this.split()
+					break;
+					case 'shoot':
+						this.move(action.x,action.y)
+						this.shoot()
+					break;	
 				}
+				
+				if(!this.lastAction
+					||this.lastAction.otherOrganism.name!=action.otherOrganism.name
+				){
+					if(action.otherOrganism.isVirus){
+						console.log("avoiding virus", action.otherOrganism.name,[action])
+					}else if (action.otherOrganism.size>myOrganisms[0].size){
+						console.log("avoiding", action.otherOrganism.name,[action])
+					}else{
+						console.log("chasing", action.otherOrganism.name,[action])
+					}
+				}
+				this.lastAction=action
 			}
-			this.lastAction=action
-		}
 
-		if (myOrganisms.length<1){
-			if(this.currentState&&this.currentState!='dead'){
+			if (this.currentState!='alive'){
+				this.lastStateChangeDate=new Date
+			}
+			this.scoreHistory.push(score)
+			this.currentState='alive'
+		}else{
+			if(this.currentState=='alive'){
+				
 				for(var i=0;i<this.considerations.length;i++){
 					if(this.scoreHistory>this.gameHistory[this.gameHistory.length-1]){
 						this.considerations[i].weight+=Math.round(Math.random()*2)
 					}else{
-						this.considerations[i].weight+=Math.round(Math.random()*10)	
+						this.considerations[i].weight+=Math.round(Math.random()*3)	
 					}
 				}
-
+				
 				this.gameHistory.push([
 					this.lastStateChangeDate,
 					new Date,	
@@ -251,19 +313,13 @@ BotPrototype={
 				this.lastStateChangeDate=new Date
 			}
 			this.currentState='dead'
-			return
-		}else{
-			if (this.currentState!='alive'){
-				this.lastStateChangeDate=new Date
-			}
-			this.scoreHistory.push(score)
-			this.currentState='alive'
 		}
 
 		this.onTick()
 	},
-	findBestAction:function(otherOrganisms,myOrganism,score){
-		var actions=[]
+	findBestAction:function(otherOrganisms,myOrganisms,depth){ //TODO To handle splits i need to be able to add multiple organisms to this function
+		var actions=[],
+			myOrganism=myOrganisms[0]
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
 				action,
@@ -271,7 +327,7 @@ BotPrototype={
 				tickCount=0;
 
 			if (myVelocity){
-				tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/velocity;
+				tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/myVelocity;
 			}
 
 			if (organism.isVirus&&organism.size<myOrganism.size
@@ -303,29 +359,31 @@ BotPrototype={
 			/* reduce invisible wall drag */
 			//Map is I believe 11200x11200
 			//TODO Curve away from the wall
-			if (action.x+myOrganism.size>11200){
-				action.x=11200-myOrganism.size;
-				action.y+=action.y-myOrganism.y
-			}else if(action.x-myOrganism.size<0){
-				action.x=myOrganism.size;
-				action.y+=action.y-myOrganism.y
-			}
-			if (action.y+myOrganism.size>11200){
-				action.y=11200-myOrganism.size;
-				action.x+=action.x-myOrganism.x
-			}else if(action.y-myOrganism.size<0){
-				action.y=myOrganism.size;
-				action.x+=action.x-myOrganism.x
-			}
+			if(action){
+				if (action.x+myOrganism.size>11200){
+					action.x=11200-myOrganism.size;
+					action.y+=action.y-myOrganism.y
+				}else if(action.x-myOrganism.size<0){
+					action.x=myOrganism.size;
+					action.y+=action.y-myOrganism.y
+				}
+				if (action.y+myOrganism.size>11200){
+					action.y=11200-myOrganism.size;
+					action.x+=action.x-myOrganism.x
+				}else if(action.y-myOrganism.size<0){
+					action.y=myOrganism.size;
+					action.x+=action.x-myOrganism.x
+				}
 
-			actions.push(action)
+				actions.push(action)
+			}
 		}
 
 		actions.sort(function(a,b){
-			return b.calcImportance(this.considerations)[0]-a.calcImportance(this.considerations)[0]		
+			return b.calcImportance(this.considerations)-a.calcImportance(this.considerations)	
 				}.bind(this))
 
-		if (actions.length > 1){
+		if (false&&actions.length > 1){
 			var imaginaryOrganism={
 				x:0,
 				y:0,
@@ -358,35 +416,68 @@ BotPrototype={
 				imaginaryOrganism.isVirus=false
 				imaginaryOrganism.name="Imaginary Organism"
 
-				actions.push(this.findBestAction([imaginaryOrganism],myOrganism,score))
+				actions.push(this.findBestAction([imaginaryOrganism],myOrganisms))
 
 				actions.sort(function(a,b){
-					return b.calcImportance(this.considerations)[0]-a.calcImportance(this.considerations)[0]		
+					return b.calcImportance(this.considerations)-a.calcImportance(this.considerations)	
 						}.bind(this))
 			}
 		}
+
+		if(depth){
+			for(var i=0;i<actions.length;i++){
+				var action=actions[i]
+				var results=this.simulateAction(otherOrganisms,myOrganisms,actions[i])
+				action.next=this.findBestAction(results.otherOrganisms,results.myOrganisms,depth-1)
+			}
+
+			actions.sort(function(a,b){
+				var aTotal=0,
+					bTotal=0,
+					c=a,
+					d=b
+
+				while(c){
+					aTotal+=c.calcImportance(this.considerations)
+					c=c.next
+				}
+
+				while(d){
+					bTotal+=d.calcImportance(this.considerations)
+					d=d.next
+				}
+
+				return bTotal-aTotal		
+			}.bind(this))
+		}
+
+
 		return actions[0]
 	},
-	draw:function(ctx){ 
-	 	if(this.lastAction){
-			for (var i=0;i<this.myOrganisms.length;i++){
-				var myOrganism=this.myOrganisms[i]
+	draw:function(ctx){
+		var lastAction=this.lastAction 
+	 	while(lastAction){
+			//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
+				var myOrganism=lastAction.myOrganism
 				ctx.beginPath()
-				if(this.lastAction.otherOrganism.isVirus||this.lastAction.otherOrganism.size>myOrganism.size){
-					ctx.strokeStyle='red'
+				ctx.lineWidth=4
+				if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
+					ctx.strokeStyle='#FF0000'
 				}else{
-					ctx.strokeStyle='green'
+					ctx.strokeStyle='#00FF00'
 				}	
 				ctx.moveTo(myOrganism.x,myOrganism.y)
-				ctx.lineTo(this.lastAction.otherOrganism.x,this.lastAction.otherOrganism.y)
+				ctx.lineTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
 				ctx.stroke()
-				
+			
+				ctx.lineWidth=1	
 				ctx.beginPath()
-				ctx.strokeStyle="black"
+				ctx.strokeStyle="#000000"
 				ctx.moveTo(myOrganism.x,myOrganism.y)
-				ctx.lineTo(this.lastAction.x,this.lastAction.y)
+				ctx.lineTo(lastAction.x,lastAction.y)
 				ctx.stroke()
-			}
+			//}
+			lastAction=lastAction.next
 		}
 	}
 }
