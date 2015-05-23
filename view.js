@@ -61,3 +61,7 @@ bot.onTick=function(){
 		behaviorChart.update()
 	}
 }
+
+var heatMapDiv=$('<div id="heat-map-div"><h4>Death Map</h4><canvas id="heat-map" width="175" height="175"></canvas></div>')
+$('body').append(heatMapDiv)
+var heatMapCtx=$('#heat-map').get(0).getContext("2d")

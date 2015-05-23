@@ -14,3 +14,10 @@
 	width:100%;
 	text-align:center;
 }
+
+#heat-map-div {
+	position:fixed;
+	bottom:5px;
+	right:5px;
+	border: 2px solid #FFFFFF;
+}

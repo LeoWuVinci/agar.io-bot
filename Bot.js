@@ -306,6 +306,9 @@ BotPrototype={
 					new Date,	
 					this.scoreHistory
 				])
+
+				heatMapCtx.strokeStyle="#FF0000"
+				heatMapCtx.strokeRect((this.lastAction.x-this.lastAction.myOrganism.size)/64,(this.lastAction.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)	
 				console.log("DEAD x_X")
 				console.log("Score",~~(this.scoreHistory[this.scoreHistory.length-1]/100))
 				console.log("Time spent alive",(Date.now()-this.lastStateChangeDate.getTime())/60000,"mins")
