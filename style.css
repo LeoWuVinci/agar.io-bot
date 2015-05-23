@@ -16,8 +16,12 @@
 }
 
 #heat-map-div {
+	text-align: center;
 	position:fixed;
 	bottom:5px;
 	right:5px;
+}
+
+#heat-map {
 	border: 2px solid #FFFFFF;
 }
