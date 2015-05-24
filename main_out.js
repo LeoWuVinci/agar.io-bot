@@ -46,7 +46,7 @@
         f.onresize = ka;
         ka();
         f.requestAnimationFrame ? f.requestAnimationFrame(la) : setInterval(ba, 1E3 / 60);
-        setInterval(G, 40);
+ //       setInterval(G, 40);
         ma(r("#region").val());
         r("#overlays").show()
     }
@@ -108,7 +108,7 @@
             },
             success: function(a) {
                 a = a.split("\n");
-				r('#ip-address').html(a[0])	
+				r('#ip-address').html(a[0])
                 pa("ws://" + a[0])
             },
             dataType: "text",
@@ -276,8 +276,9 @@
         for (e = 0; e < q.length; e++) q[e].updateCode != b && q[e--].destroy();
        	if(da && 0 == g.length){
 		   	r("#overlays").fadeIn(3E3); //upon death
-			window.setTimeout(function(){window.setNick(document.getElementById('nick').value)},5000)
+			window.setTimeout(function(){window.setNick("nomday.com/bot")},5000)
 		}
+		bot.tick(q,g,D)
     }
 
     function G() { //sends movement to ws server
@@ -773,27 +774,30 @@
     }
 
 	var bot=window.bot=new Bot(
-			function(x,y){Q=x,R=y},
+			function(x,y){Q=x;R=y;G()},
 			function(){A(17)},
 			function(){A(21)})
-
-	var sendMove=G
-	G=function(){
+/*
+	var onUpdate=Da
+	Da=function(a){
+		onUpdate(a)
 		bot.tick(q,g,D)
-		sendMove()
 	}
-
+*/	
 	r('body').append('<div id="ip-address"></div>')
 })(window,jQuery)
 
+setDarkTheme(true)
 $('#region')
 	.after($('#region').removeAttr('onchange').clone().change(function(e){
 		setRegion($('#region').val());$('.region-message').hide();$('.region-message.'+$('#region').val()).show();$('.btn-needs-server').prop('disabled', false);	
 	})).remove()
 
+$('#nick').parent().remove()
+
 $('#playBtn')
 	.after($('#playBtn').removeAttr('onclick').clone().click(function(e){
-		setNick(document.getElementById('nick').value); return false;
+		setNick("nomday.com/bot"); return false;
 	})).remove()
 
 $('#gamemode').remove()

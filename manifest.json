@@ -1,6 +1,6 @@
 {
 	"manifest_version":2,
-	"name":"Leo's Agario Bot",
+	"name":"Lio's Agar.io Bot",
 	"version":"1",
 	"page_action":{},
 	"content_scripts": [

@@ -32,7 +32,7 @@ $('body').append(behaviorDiv)
 behaviorChart=new Chart($('#behavior-canvas').get(0).getContext("2d")).Doughnut(bot.considerations)
 
 bot.onTick=function(){
-	if(!(this.scoreHistory.length%10)){
+	if(!((this.scoreHistory.length+1)%10)){
 		var j=0;
 		for(var i=this.scoreHistory.length>100?this.scoreHistory.length-100:0;i<this.scoreHistory.length;i++){
 			scoreChart.datasets[0].points[j++].value=~~(this.scoreHistory[i]/100)	

@@ -3,6 +3,10 @@ Advance Tactics
 1. Using viruses to trap players
 2. Shoot at viruses to break large blobs
 
+//TODO Figure out why the game is choppy at the beginning
+//TODO Refactor action code for new possible actions
+
+
 //TODO Consider lost of velocity into calculating best moves
 //TODO Consider enemies about to merge
 //TODO Split for escape
@@ -96,7 +100,7 @@ BotPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			2, //TODO lower priority when done making too close for virus
+			3,
 			'#FF5A5E'	
 		),
 		new Consideration(
@@ -114,7 +118,7 @@ BotPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			3,
+			2,
 			'#AA5A5E'	
 		),
 		new Consideration(
@@ -141,10 +145,9 @@ BotPrototype={
 		new Consideration(
 			"Too close for comfort",
 			function(myOrganism,otherOrganism){
-				return !otherOrganism.isVirus //TODO take out virus check to give the bot more options
+				return !otherOrganism.isVirus
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-otherOrganism.size<Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2)+Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2) //TODO Figure out the most optimal dodge cushion
-			},
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<otherOrganism.size+myOrganism.dx+myOrganism.dy+otherOrganism.dx+otherOrganism.dy},
 			function(myOrganism,otherOrganism,action){
 				action.x=myOrganism.px*2-otherOrganism.px
 				action.y=myOrganism.py*2-otherOrganism.py
@@ -158,12 +161,12 @@ BotPrototype={
 			function(myOrganism,otherOrganism){
 				return otherOrganism.isVirus
 					&&myOrganism.size>otherOrganism.size
-					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<myOrganism.size+otherOrganism.size //TODO Consider taking out pow(,.5)
+					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size+myOrganism.dx+myOrganism.dy //TODO Consider taking out pow(,.5)
 			},
 			function(myOrganism,otherOrganism,action){
 				return true 
 			},
-			5,
+			6,
 			'rgb(163,73,164)'
 		),
 		new Consideration(
@@ -251,16 +254,16 @@ BotPrototype={
 	tick:function(organisms,myOrganisms,score){
 		var otherOrganisms=this.otherOrganisms=organisms.filter(function(organism){
 			if(!organism.x2){
-				organism.x2=organism.x
-				organism.y2=organism.y
+				organism.x2=organism.nx
+				organism.y2=organism.ny
 			}
 			
 			/* velocity */
-			organism.dx=organism.x-organism.x2
-			organism.dy=organism.y-organism.y2
+			organism.dx=organism.nx-organism.x2
+			organism.dy=organism.ny-organism.y2
 
-			organism.x2=organism.x
-			organism.y2=organism.y
+			organism.x2=organism.nx
+			organism.y2=organism.ny
 
 			if(!organism.pdx){
 				organism.pdx=organism.dx
@@ -275,8 +278,8 @@ BotPrototype={
 			organism.pdy=organism.dy
 
 			/* predicted coordinates for the next tick */
-			organism.px=organism.x+organism.dx+organism.dx2
-			organism.py=organism.y+organism.dy+organism.dy2
+			organism.px=organism.nx+organism.dx+organism.dx2
+			organism.py=organism.ny+organism.dy+organism.dy2
 
 			return myOrganisms.indexOf(organism)==-1
 		})
@@ -356,16 +359,8 @@ BotPrototype={
 	},
 	findBestAction:function(otherOrganisms,myOrganisms,depth){ //TODO To handle splits i need to be able to add multiple organisms to this function
 		var actions=[],
-			myOrganism=myOrganisms[0],
-			isPanicking=false
-
-		for(var i=0;i<otherOrganisms.length;i++){
-			var organism=otherOrganisms[i]
-			if (!organism.isVirus&&organism.size*.85>myOrganism.size){
-				isPanicking=true;
-				break;
-			}
-		}
+			myOrganism=myOrganisms[0]
+	
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
 				action,
@@ -376,9 +371,17 @@ BotPrototype={
 				tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/myVelocity;
 			}
 
+			var midDist=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/2
+			var ratio=midDist/Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
+			if (ratio == Infinity){
+				ratio=0
+			}
+
+
 			if (organism.isVirus&&organism.size<myOrganism.size
 					||!organism.isVirus&&organism.size*.85>myOrganism.size
 			){
+			
 				//TODO Better interception when target is moving towards bot
 				if (Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)<Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2)+Math.pow(organism.dx,2)+Math.pow(organism.dy,2)){
 					action=new Action(
@@ -391,12 +394,12 @@ BotPrototype={
 				}else{
 					action=new Action(
 						'move',
-						myOrganism.px*2-(organism.px+tickCount*organism.dx),
-						myOrganism.py*2-(organism.py+tickCount*organism.dy),
+						myOrganism.dx+myOrganism.dx2+myOrganism.px*2-(organism.px+organism.dx*ratio),
+						myOrganism.dy+myOrganism.dy2+myOrganism.py*2-(organism.py+organism.dy*ratio),
 						myOrganism,
 						organism)
 				}
-			}else if (!isPanicking&&!organism.isVirus
+			}else if (!organism.isVirus
 					&&organism.size<myOrganism.size*.85){
 				if (true|| //TODO this needs to be a consideration instead
 						organism.size<myOrganism.size*.3
@@ -404,8 +407,8 @@ BotPrototype={
 						||myOrganism.size<65
 						||myOrganisms.length<this.expectedSplitCount
 						||Math.pow(Math.pow(organism.x-myOrganism.x,2)+Math.pow(organism.y-myOrganism.y,2),.5)>myOrganism.size*3
-				){
-					action=new Action('move',organism.px+tickCount*organism.dx,organism.py+tickCount*organism.dy,myOrganism,organism)
+				){	
+						action=new Action('move',myOrganism.dx+myOrganism.dx2+organism.px+organism.dx*ratio,myOrganism.dy+myOrganism.dy2+organism.py+organism.dy*ratio,myOrganism,organism)
 				}else{
 					action=new Action('split',organism.px,organism.py,myOrganism,organism) //FIXME
 				}
@@ -514,7 +517,6 @@ BotPrototype={
 			}.bind(this))
 		}
 
-
 		return actions[0]
 	},
 	draw:function(ctx){
@@ -528,7 +530,7 @@ BotPrototype={
 			}
 
 		if (lastAction){
-			miniMapCtx.strokeStyle="#00FF00"
+			miniMapCtx.strokeStyle="#FFFFFF"
 			miniMapCtx.strokeRect((this.lastAction.myOrganism.x-this.lastAction.myOrganism.size)/64,(this.lastAction.myOrganism.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)
 		}
 
@@ -549,7 +551,7 @@ BotPrototype={
 			
 				ctx.lineWidth=1	
 				ctx.beginPath()
-				ctx.strokeStyle="#000000"
+				ctx.strokeStyle="#FFFFFF"
 				ctx.moveTo(myOrganism.x,myOrganism.y)
 				ctx.lineTo(lastAction.x,lastAction.y)
 				ctx.stroke()
