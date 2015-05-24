@@ -2,6 +2,9 @@
 
 twitch.tv/GamerLio
 
+## How to install
+https://youtu.be/fEVX4xmEn4s
+
 ## Main Components for Improving Bot Performance
 * Number of Possible Actions
 * Number of Considerations per Action

@@ -15,7 +15,7 @@
 	text-align:center;
 }
 
-#heat-map-div {
+#heat-map-div, #mini-map {
 	text-align: center;
 	position:fixed;
 	bottom:5px;

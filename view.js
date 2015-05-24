@@ -31,10 +31,6 @@ var behaviorDiv=$('<div id="bot-intuition"><h4>Bot Intuition</h4><canvas id="beh
 $('body').append(behaviorDiv)
 behaviorChart=new Chart($('#behavior-canvas').get(0).getContext("2d")).Doughnut(bot.considerations)
 
-bot.onDeath=function(){
-	
-}
-
 bot.onTick=function(){
 	if(!(this.scoreHistory.length%10)){
 		var j=0;
@@ -62,6 +58,10 @@ bot.onTick=function(){
 	}
 }
 
-var heatMapDiv=$('<div id="heat-map-div"><h4>Death Map</h4><canvas id="heat-map" width="175" height="175"></canvas></div>')
+var heatMapDiv=$('<div id="heat-map-div"><h4>Mini Map</h4><canvas id="heat-map" width="175" height="175"></canvas></div>')
 $('body').append(heatMapDiv)
 var heatMapCtx=$('#heat-map').get(0).getContext("2d")
+
+var miniMapCanvas=$('<canvas id="mini-map" width="175" height="175"></canvas>')
+$('body').append(miniMapCanvas)
+miniMapCtx=miniMapCanvas.get(0).getContext("2d")
