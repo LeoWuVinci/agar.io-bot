@@ -3,9 +3,9 @@ Advance Tactics
 1. Using viruses to trap players
 2. Shoot at viruses to break large blobs
 
+//TODO Deal with gameHistory possible memory limit issue
 //TODO Refactor action code for new possible actions
 //TODO Clean up tree traversal code
-//TODO Record stats to a server
 //TODO revisit escape path
 
 //TODO Consider lost of velocity into calculating best moves
@@ -379,8 +379,9 @@ BotPrototype={
 					var stat=this.gameHistory[i],
 						totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
 					for(var j=0;j<stat.considerationWeights.length;j++){
-						weights[j]=stat.considerationWeights[j]/totalWeight*stat.maxSize
-						totalMaxSize+=stat.maxSize	
+						var maxSize=Math.max.apply(null,stat.sizes);
+						weights[j]=stat.considerationWeights[j]/totalWeight*maxSize
+						totalMaxSize+=maxSize	
 					}
 				}
 				
