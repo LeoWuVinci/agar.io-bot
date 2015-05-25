@@ -3,7 +3,6 @@ Advance Tactics
 1. Using viruses to trap players
 2. Shoot at viruses to break large blobs
 
-//TODO Weighted Random
 //TODO Refactor action code for new possible actions
 //TODO Clean up tree traversal code
 //TODO Record stats to a server
@@ -379,7 +378,7 @@ BotPrototype={
 				
 				for(var i=0;i<weights.length;i++){
 					weights[i]/=totalMaxSize;
-					weights[i]+=Math.random()*100/this.gameHistory.length+1
+					weights[i]+=Math.random()*100/(this.gameHistory.length%2?1:this.gameHistory.length)+1
 					this.considerations[i].weight=weights[i]	
 				}
 

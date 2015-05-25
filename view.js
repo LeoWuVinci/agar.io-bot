@@ -27,7 +27,7 @@ var scoreChart=new Chart(scoreCanvas.get(0).getContext("2d")).Line({labels:label
 	}
 ]});
 
-var behaviorDiv=$('<div id="bot-intuition"><h4>Bot Intuition</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
+var behaviorDiv=$('<div id="bot-intuition"><h4 id="bot-status">Bot Intuition</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
 $('body').append(behaviorDiv)
 behaviorChart=new Chart($('#behavior-canvas').get(0).getContext("2d")).Doughnut(bot.considerations)
 
@@ -44,6 +44,14 @@ bot.onTick=function(){
 			scoreChart.datasets[1].points[10*j++].value=~~(gameStat.maxSize)	
 		}
 		scoreChart.update()
+
+		if(this.gameHistory.length<100) {
+			$('#bot-status').html('<span style="color:red">LEARNING FOR 100 LIVES (life '+(this.gameHistory.length+1)+')</span>')
+		}else if(this.scoreHistory%2){
+			$('#bot-status').html('<span style="color:red">LEARNING FOR 1 LIFE</span>')
+		}else{
+			$('#bot-status').html('Bot Intuition')
+		}
 	}
 
 	var needsUpdate=false
