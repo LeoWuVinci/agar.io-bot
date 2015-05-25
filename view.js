@@ -27,7 +27,7 @@ var scoreChart=new Chart(scoreCanvas.get(0).getContext("2d")).Line({labels:label
 	}
 ]});
 
-var behaviorDiv=$('<div id="bot-intuition"><h4 id="bot-status">Bot Intuition</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
+var behaviorDiv=$('<div id="bot-intuition"><h4 id="bot-status">Intuition</h4><canvas id="behavior-canvas" width="250" height="100"></canvas></div>')
 $('body').append(behaviorDiv)
 behaviorChart=new Chart($('#behavior-canvas').get(0).getContext("2d")).Doughnut(bot.considerations)
 
@@ -50,7 +50,7 @@ bot.onTick=function(){
 		}else if(this.gameHistory.length%2){
 			$('#bot-status').html('<span style="color:red">LEARNING FOR 1 LIFE</span>')
 		}else{
-			$('#bot-status').html('Bot Intuition')
+			$('#bot-status').html('Intuition')
 		}
 	}
 
@@ -66,7 +66,7 @@ bot.onTick=function(){
 	}
 }
 
-var heatMapDiv=$('<div id="heat-map-div"><h4>Mini Map</h4><canvas id="heat-map" width="175" height="175"></canvas></div>')
+var heatMapDiv=$('<div id="heat-map-div"><canvas id="heat-map" width="175" height="175"></canvas></div>')
 $('body').append(heatMapDiv)
 var heatMapCtx=$('#heat-map').get(0).getContext("2d")
 

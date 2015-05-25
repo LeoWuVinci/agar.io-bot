@@ -7,6 +7,9 @@ Advance Tactics
 //TODO Clean up tree traversal code
 //TODO Deal with gameHistory possible memory limit issue
 //TODO revisit escape path
+//TODO revisit "Too close for comfort"
+//TODO Jump servers every 4hrs
+//TODO Consider 16 piece split has the ability to eat viruses when you have more than 100 mass
 
 //TODO Consider lost of velocity into calculating best moves
 //TODO Consider enemies about to merge
@@ -101,6 +104,19 @@ Consideration.prototype={
 	},
 }
 
+var ActionGenerator=function(label,filter,calcPriority,weight,color,calcCoord){
+	Consideration.call(this,label,filter,calcPriority,weight,color)
+	this.calcCoord=calcCoord
+}
+
+ActionGenerator.prototype=Object.create(Consideration.prototype)
+actionGeneratorPrototype={
+	calcCoord:function(myOrganism,otherOrganism,action){}
+}
+for(key in actionGeneratorPrototype){
+	ActionGenerator.prototype[key]=actionGeneratorPrototype[key]
+}
+
 var Bot=function(move,split,shoot){
 	BotInterface.call(this,move,split,shoot)
 
@@ -126,7 +142,7 @@ BotPrototype={
 			'#FF5A5E'	
 		),
 		new Consideration(
-			"Relative Enemy Size",
+			"Avoid Enemies With Similar Mass",
 			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size},
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
@@ -135,7 +151,7 @@ BotPrototype={
 			'#335A5E'	
 		),
 		new Consideration(
-			"Relative Food Size",
+			"Chase Blob with Similar Mass",
 			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size},
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
@@ -144,7 +160,7 @@ BotPrototype={
 			'#AA5A5E'	
 		),
 		new Consideration(
-			"Nearest Food",
+			"Chase Nearest Small Blob",
 			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size},
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size
@@ -153,7 +169,7 @@ BotPrototype={
 			'#46BFBD'
 		),
 		new Consideration(
-			"Nearest Enemy",
+			"Avoid Nearest Danger",
 			function(myOrganism,otherOrganism){
 				return otherOrganism.isVirus&&myOrganism.size>otherOrganism.size
 				||!otherOrganism.isVirus&&myOrganism.size<otherOrganism.size //TODO Break up filter into two different functions
@@ -165,7 +181,7 @@ BotPrototype={
 			'#46BF00'
 		),
 		new Consideration(
-			"Too close for comfort",
+			"Avoid Touching Larger Blobs",
 			function(myOrganism,otherOrganism){
 				return !otherOrganism.isVirus
 				&&myOrganism.size<otherOrganism.size
@@ -179,7 +195,7 @@ BotPrototype={
 			'#EEEEEE'
 		),
 		new Consideration(
-			"Don't touch viruses",
+			"Avoid Touching Viruses",
 			function(myOrganism,otherOrganism){
 				return otherOrganism.isVirus
 					&&myOrganism.size>otherOrganism.size
@@ -192,7 +208,7 @@ BotPrototype={
 			'rgb(163,73,164)'
 		),
 		new Consideration(
-			"Map Edge Avoidance",
+			"Move generally towards the middle of the map",
 			function(){return true},
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
@@ -201,7 +217,7 @@ BotPrototype={
 			'#FDB45C'
 		),
 		new Consideration(
-			"Splitter Avoidance", 
+			"Avoid Splitters", 
 			function(myOrganism,otherOrganism,action){
 				return !otherOrganism.isVirus
 					&& otherOrganism.size>63
@@ -232,6 +248,51 @@ BotPrototype={
 			'#FF0000'
 		)
 		*/
+	],
+	actionGenerators:[
+		new ActionGenerator(
+			"Intercept small blob",
+			function(myOrganism,otherOrganism){
+				return !otherOrganism.isVirus&&otherOrganism.size<myOrganism.size//TODO *.85	
+			},
+			function(myOrganism,otherOrganism){
+				return true
+			},
+			function(myOrganism,otherOrganism){
+				var tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/2/Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
+				//tells us how long it will take to reach the midpoint	
+				if (tickCount == Infinity){
+					tickCount=0
+				}
+
+				return new Action('move',
+					myOrganism.dx+myOrganism.dx2+organism.px+organism.dx*ratio,
+					myOrganism.dy+myOrganism.dy2+organism.py+organism.dy*ratio,
+					myOrganism,
+					organism)
+			}
+		),
+		new ActionGenerator(
+			"Juke big blob",
+			function(myOrganism,otherOrganism){
+				return !otherOrganism.isVirus&&otherOrganism.size>myOrganism.size	
+			},
+			function(myOrganism,otherOrganism){
+				return true
+			},
+			function(myOrganism,otherOrganism){
+				
+			}
+		),
+		new ActionGenerator(
+			"B line away big blob",
+			function(myOrganism,otherOrganism){
+			},
+			function(myOrganism,otherOrganism){
+			},
+			function(myOrganism,otherOrganism){
+			}
+		)
 	],
 	lastAction:null,
 	currentState:'',
@@ -424,7 +485,6 @@ BotPrototype={
 				ratio=0
 			}
 
-
 			if (organism.isVirus&&organism.size<myOrganism.size
 					||!organism.isVirus&&organism.size*.85>myOrganism.size
 			){
@@ -572,7 +632,7 @@ BotPrototype={
 			
 			for(var i=0;i<this.otherOrganisms.length;i++){
 				var otherOrganism=this.otherOrganisms[i]
-				miniMapCtx.strokeStyle="#0000FF"
+				miniMapCtx.strokeStyle="#5555FF"
 				miniMapCtx.strokeRect((otherOrganism.x-otherOrganism.size)/64,(otherOrganism.y-otherOrganism.size)/64,otherOrganism.size*2/64,otherOrganism.size*2/64)
 			}
 
