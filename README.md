@@ -1,8 +1,10 @@
 # agario-bot
+Agar.io bot with a touch of genetic algorithms
 
+See the latest bot in action as well as development at
 twitch.tv/GamerLio
 
-## How to install
+## How to install from GitHub
 https://youtu.be/fEVX4xmEn4s
 
 ## Main Components for Improving Bot Performance

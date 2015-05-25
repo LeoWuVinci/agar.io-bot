@@ -35,13 +35,13 @@ bot.onTick=function(){
 	if(!((this.scoreHistory.length+1)%10)){
 		var j=0;
 		for(var i=this.scoreHistory.length>100?this.scoreHistory.length-100:0;i<this.scoreHistory.length;i++){
-			scoreChart.datasets[0].points[j++].value=~~(this.scoreHistory[i]/100)	
+			scoreChart.datasets[0].points[j++].value=~~(this.scoreHistory[i])	
 		}
 
 		j=0
 		for(var i=this.gameHistory.length>10?this.gameHistory.length-10:0;i<this.gameHistory.length;i++){
-			var gameStats=this.gameHistory[i];
-			scoreChart.datasets[1].points[10*j++].value=~~(gameStats[2][gameStats[2].length-1]/100)	
+			var gameStat=this.gameHistory[i];
+			scoreChart.datasets[1].points[10*j++].value=~~(gameStat.maxSize)	
 		}
 		scoreChart.update()
 	}

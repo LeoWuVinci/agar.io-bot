@@ -278,7 +278,6 @@
 		   	r("#overlays").fadeIn(3E3); //upon death
 			window.setTimeout(function(){window.setNick("nomday.com/bot")},5000)
 		}
-		bot.tick(q,g,D)
     }
 
     function G() { //sends movement to ws server
@@ -777,13 +776,11 @@
 			function(x,y){Q=x;R=y;G()},
 			function(){A(17)},
 			function(){A(21)})
-/*
 	var onUpdate=Da
 	Da=function(a){
 		onUpdate(a)
 		bot.tick(q,g,D)
 	}
-*/	
 	r('body').append('<div id="ip-address"></div>')
 })(window,jQuery)
 

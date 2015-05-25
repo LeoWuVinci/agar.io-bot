@@ -3,9 +3,11 @@ Advance Tactics
 1. Using viruses to trap players
 2. Shoot at viruses to break large blobs
 
-//TODO Figure out why the game is choppy at the beginning
+//TODO Weighted Random
 //TODO Refactor action code for new possible actions
-
+//TODO Clean up tree traversal code
+//TODO Record stats to a server
+//TODO revisit escape path
 
 //TODO Consider lost of velocity into calculating best moves
 //TODO Consider enemies about to merge
@@ -13,7 +15,24 @@ Advance Tactics
 //TODO Consider random paths at 1200+
 //TODO Feeding, Attacking, Escaping phase
 //TODO Eat based on direction
+//TODO Goto corner when huge
    */
+
+function Stat(startDate,endDate,sizes,considerationWeights){
+	this.startDate=startDate
+	this.endDate=endDate
+	this.sizes=sizes
+	this.considerationWeights=considerationWeights
+}
+Stat.prototype={
+	startDate:null,
+	endDate:null,
+	sizes:[],
+	get maxSize(){
+		return Math.max.apply(null,this.sizes);
+	},
+	considerationWeights:[]
+}
 
 var Organism=function(){}
 Organism.prototype={
@@ -337,12 +356,32 @@ BotPrototype={
 						this.considerations[i].weight+=Math.round(Math.random()*3)	
 					}
 				}
-			*/	
-				this.gameHistory.push([
-					this.lastStateChangeDate,
-					new Date,	
-					this.scoreHistory
-				])
+			*/
+				this.gameHistory.push(new Stat(
+						this.lastStateChangeDate,
+						new Date,	
+						this.scoreHistory,
+						this.considerations.map(function(consideration){return consideration.weight})))
+				var weights=[],
+					totalMaxSize=0
+				for(var i=0;i<this.considerations.length;i++){
+					weights[i]=0
+				}
+
+				for(var i=0;i<this.gameHistory.length;i++){
+					var stat=this.gameHistory[i],
+						totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
+					for(var j=0;j<stat.considerationWeights.length;j++){
+						weights[j]=stat.considerationWeights[j]/totalWeight*stat.maxSize
+						totalMaxSize+=stat.maxSize	
+					}
+				}
+				
+				for(var i=0;i<weights.length;i++){
+					weights[i]/=totalMaxSize;
+					weights[i]+=Math.random()*100/this.gameHistory.length+1
+					this.considerations[i].weight=weights[i]	
+				}
 
 				heatMapCtx.strokeStyle="#FF0000"
 				heatMapCtx.strokeRect((this.lastAction.x-this.lastAction.myOrganism.size)/64,(this.lastAction.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)	
