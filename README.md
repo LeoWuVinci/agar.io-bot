@@ -35,3 +35,4 @@ Breath-first search using the fitness score and time
 * Hide'n'seek
 * Sniper
 * Bet the score
+* VIP

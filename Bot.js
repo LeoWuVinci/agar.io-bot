@@ -3,9 +3,9 @@ Advance Tactics
 1. Using viruses to trap players
 2. Shoot at viruses to break large blobs
 
-//TODO Deal with gameHistory possible memory limit issue
 //TODO Refactor action code for new possible actions
 //TODO Clean up tree traversal code
+//TODO Deal with gameHistory possible memory limit issue
 //TODO revisit escape path
 
 //TODO Consider lost of velocity into calculating best moves
