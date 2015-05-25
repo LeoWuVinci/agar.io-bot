@@ -103,6 +103,10 @@ Consideration.prototype={
 
 var Bot=function(move,split,shoot){
 	BotInterface.call(this,move,split,shoot)
+
+	chrome.storage.local.get("gameHistory",function(items){
+		this.gameHistory=items.gameHistory	
+	}.bind(this))
 }
 
 Bot.prototype=Object.create(BotInterface.prototype)
@@ -361,6 +365,10 @@ BotPrototype={
 						new Date,	
 						this.scoreHistory,
 						this.considerations.map(function(consideration){return consideration.weight})))
+
+
+				chrome.storage.local.set({gameHistory:this.gameHistory})
+
 				var weights=[],
 					totalMaxSize=0
 				for(var i=0;i<this.considerations.length;i++){

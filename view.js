@@ -47,7 +47,7 @@ bot.onTick=function(){
 
 		if(this.gameHistory.length<100) {
 			$('#bot-status').html('<span style="color:red">LEARNING FOR 100 LIVES (life '+(this.gameHistory.length+1)+')</span>')
-		}else if(this.scoreHistory%2){
+		}else if(this.scoreHistory.length%2){
 			$('#bot-status').html('<span style="color:red">LEARNING FOR 1 LIFE</span>')
 		}else{
 			$('#bot-status').html('Bot Intuition')
