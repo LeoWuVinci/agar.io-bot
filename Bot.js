@@ -475,7 +475,7 @@ BotPrototype={
 			this.currentState='dead'
 		}
 
-		//this.onTick()
+		this.onTick()
 	},
 	findBestAction:function(otherOrganisms,myOrganisms,depth){ //TODO To handle splits i need to be able to add multiple organisms to this function
 		var actions=[],

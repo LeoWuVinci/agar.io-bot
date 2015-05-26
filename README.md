@@ -1,8 +1,8 @@
 # agario-bot
 Agar.io bot with a touch of genetic algorithms
 
-See the latest bot in action as well as development at
-twitch.tv/GamerLio
+See the latest bot in action as well as development while streaming at
+http://nomday.com/lio
 
 ## How to install from GitHub
 https://youtu.be/fEVX4xmEn4s
