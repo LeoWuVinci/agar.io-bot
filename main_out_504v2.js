@@ -33,6 +33,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             32 != d.keyCode || a || (H(), A(17), a = !0);
             81 != d.keyCode || b || (A(18), b = !0);
             87 != d.keyCode || c || (H(), A(21), c = !0);
+if(d.keyCode == 72) { if(g.length > 0 && confirm("Sure to bug?")) g[0].ox = Number.POSITIVE_INFINITY; };
             27 == d.keyCode && na(!0)
         };
         f.onkeyup = function(d) {
@@ -121,6 +122,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             },
             success: function(a) {
                 a = a.split("\n");
+				l('#ip-address').html(a[0])
                 ta("ws://" + a[0])
             },
             dataType: "text",
@@ -787,6 +789,28 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
         }
     }
 
+	window.skinNames=[
+		'nomday.com/bot',
+		'Yaranaika',
+		'Pokerface',
+		'Sir',
+		'Mars',
+		'Stalin',
+		'Moon',
+		'Wojak',
+		'Imperial Japan',
+		'Doge',
+		'Earth',
+		'Bait',
+		'Steam',
+		'Piccolo',
+		'Sanik',
+		'Cia',
+		'4chan',
+		'Ayy Lmao',
+		'Qing Dynasty',
+	]
+
 	var bot=window.bot=new Bot(
 			function(x,y){Q=x;R=y;H()},
 			function(){A(17)},
@@ -800,11 +824,12 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 	var onDeath=na
 	na=function(a){
 		onDeath(a)
-		window.setTimeout(function(){window.setNick("nomday.com/bot")},5000)
+		window.setTimeout(function(){window.setNick(window.skinNames[~~(window.skinNames.length*Math.pow(Math.random(),2))])},5000)
 	}
 
 })(window, jQuery);
 
+$('body').append('<div id="ip-address"></div>')
 
 setDarkTheme(true)
 
@@ -816,7 +841,8 @@ $('#nick').parent().remove()
 
 $('#playBtn')
 	.after($('#playBtn').removeAttr('onclick').clone().click(function(e){
-		setNick("nomday.com/bot"); return false;
+		setNick(window.skinNames[~~(window.skinNames.length*Math.random())]);
+		return false;
 	})).remove()
 
 $('#gamemode').remove()

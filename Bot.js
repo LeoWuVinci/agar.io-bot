@@ -289,11 +289,13 @@ BotPrototype={
 				}
 
 				return new Action('move',
-					myOrganism.dx+myOrganism.dx2+organism.px+organism.dx*ratio,
-					myOrganism.dy+myOrganism.dy2+organism.py+organism.dy*ratio,
+					myOrganism.dx+myOrganism.dx2+organism.px+organism.dx*tickCount,
+					myOrganism.dy+myOrganism.dy2+organism.py+organism.dy*tickCount,
 					myOrganism,
 					organism)
-			}
+			},
+			1,
+			'#FF0000'
 		),
 		new ActionGenerator(
 			"Juke big blob",
@@ -301,21 +303,62 @@ BotPrototype={
 				return !otherOrganism.isVirus&&otherOrganism.size>myOrganism.size	
 			},
 			function(myOrganism,otherOrganism){
-				return true
+				return Math.pow(myOrganism.x-otherOrganism.y,2)+Math.pow(myOrganism.y-otherOrganism.y,2)
 			},
 			function(myOrganism,otherOrganism){
-						
-			}
+				var tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/2/Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
+				//tells us how long it will take to reach the midpoint	
+				if (tickCount == Infinity){
+					tickCount=0
+				}
+
+				return new Action('move',
+					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-organism.px-organism.dx*tickCount,
+					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-organism.py-organism.dy*tickCount,
+					myOrganism,
+					organism)
+			},
+			1,
+			'#00FF00'
 		),
 		new ActionGenerator(
 			"B line away big blob",
 			function(myOrganism,otherOrganism){
+				return !otherOrganism.isVirus&&otherOrganism.size>myOrganism.size	
 			},
 			function(myOrganism,otherOrganism){
+				return -Math.pow(myOrganism.x-otherOrganism.y,2)-Math.pow(myOrganism.y-otherOrganism.y,2)
 			},
 			function(myOrganism,otherOrganism){
-			}
-		)
+				return new Action('move',
+					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-organism.px-organism.dx-dx2,
+					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-organism.py-organism.dy-dy2,
+					myOrganism,
+					organism)	
+			},
+			1,
+			'#0000FF'
+		),
+		new ActionGenerator(
+			"B line away from virus",
+			function(myOrganism,otherOrganism){
+				return otherOrganism.isVirus&&otherOrganism.size<myOrganism.size	
+			},
+			function(myOrganism,otherOrganism){
+				return true
+			},
+			function(myOrganism,otherOrganism){
+				return new Action('move',
+					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-organism.px,
+					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-organism.py,
+					myOrganism,
+					organism)	
+			},
+			1,
+			'#0000FF'
+		),
+
+
 	],
 	lastAction:null,
 	currentState:'',
@@ -520,7 +563,7 @@ BotPrototype={
 						myOrganism,
 						organism)
 				}
-			}else if (!organism.isVirus
+			}else if (organism.name.substr(0,3)!='[L]'&&!organism.isVirus
 					&&organism.size<myOrganism.size*.85){
 				if (true|| //TODO this needs to be a consideration instead
 						organism.size<myOrganism.size*.3
