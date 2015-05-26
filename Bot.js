@@ -231,7 +231,7 @@ BotPrototype={
 			'rgb(163,73,164)'
 		),
 		new Consideration(
-			"Move generally towards the middle of the map",
+			"Move towards Middle of Map",
 			function(){return true},
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
@@ -304,7 +304,7 @@ BotPrototype={
 				return true
 			},
 			function(myOrganism,otherOrganism){
-				
+						
 			}
 		),
 		new ActionGenerator(
@@ -440,7 +440,9 @@ BotPrototype={
 						this.scoreHistory,
 						this.considerations.map(function(consideration){return consideration.weight})))
 
-		//		chrome.storage.local.set({gameHistory:this.gameHistory})
+
+				var slicedGameHistory=this.gameHistory.slice(this.gameHistory.length-400,this.gameHistory.length)
+				chrome.storage.local.set({gameHistory:slicedGameHistory}) //TODO Learning is capped at 400 due to chrome's freezing when trying to save more than that
 
 				var weights=this.totalWeights,
 					totalMaxSize=this.totalMaxSize
