@@ -1,5 +1,6 @@
 #score-chart {
 	position:fixed;
+	top:0px;
 }
 
 #bot-intuition {

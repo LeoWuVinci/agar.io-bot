@@ -121,7 +121,28 @@ var Bot=function(move,split,shoot){
 	BotInterface.call(this,move,split,shoot)
 
 	chrome.storage.local.get("gameHistory",function(items){
-		this.gameHistory=items.gameHistory	
+		this.gameHistory=items.gameHistory
+
+		var weights=[],
+		totalMaxSize=0
+		for(var i=0;i<this.considerations.length;i++){
+			weights[i]=0
+		}
+
+		for(var i=0;i<this.gameHistory.length;i++){
+			var stat=this.gameHistory[i],
+				totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
+			for(var j=0;j<stat.considerationWeights.length;j++){
+				var maxSize=Math.max.apply(null,stat.sizes);
+				if(maxSize!=0&&maxSize!=-Infinity){
+					weights[j]=stat.considerationWeights[j]/totalWeight*maxSize
+					totalMaxSize+=maxSize
+				}
+			}
+		}
+
+		this.totalWeights=weights
+		this.totalMaxSize=totalMaxSize
 	}.bind(this))
 }
 
@@ -131,6 +152,8 @@ Bot.prototype=Object.create(BotInterface.prototype)
 BotPrototype={
 	expectedSplitCount:0,
 	onTick:function(){},
+	totalWeights:[],
+	totalMaxSize:0,
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
@@ -411,32 +434,18 @@ BotPrototype={
 			this.currentState='alive'
 		}else{
 			if(this.currentState=='alive'){
-		
-				/*		
-				for(var i=0;i<this.considerations.length;i++){
-					if(this.scoreHistory>this.gameHistory[this.gameHistory.length-1]){
-						this.considerations[i].weight+=Math.round(Math.random()*2)
-					}else{
-						this.considerations[i].weight+=Math.round(Math.random()*3)	
-					}
-				}
-			*/
 				this.gameHistory.push(new Stat(
 						this.lastStateChangeDate,
 						new Date,	
 						this.scoreHistory,
 						this.considerations.map(function(consideration){return consideration.weight})))
 
+		//		chrome.storage.local.set({gameHistory:this.gameHistory})
 
-				chrome.storage.local.set({gameHistory:this.gameHistory})
+				var weights=this.totalWeights,
+					totalMaxSize=this.totalMaxSize
 
-				var weights=[],
-					totalMaxSize=0
-				for(var i=0;i<this.considerations.length;i++){
-					weights[i]=0
-				}
-
-				for(var i=0;i<this.gameHistory.length;i++){
+				for(var i=this.gameHistory.length-1;i<this.gameHistory.length;i++){
 					var stat=this.gameHistory[i],
 						totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
 					for(var j=0;j<stat.considerationWeights.length;j++){
@@ -445,13 +454,16 @@ BotPrototype={
 						totalMaxSize+=maxSize	
 					}
 				}
+
+				this.totalWeights=weights
+				this.totalMaxSize=totalMaxSize
 				
 				for(var i=0;i<weights.length;i++){
 					weights[i]/=totalMaxSize;
 					weights[i]+=Math.random()*100/(this.gameHistory.length%2?1:this.gameHistory.length)+1
 					this.considerations[i].weight=weights[i]	
 				}
-
+				
 				heatMapCtx.strokeStyle="#FF0000"
 				heatMapCtx.strokeRect((this.lastAction.x-this.lastAction.myOrganism.size)/64,(this.lastAction.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)	
 				console.log("DEAD x_X")
@@ -463,7 +475,7 @@ BotPrototype={
 			this.currentState='dead'
 		}
 
-		this.onTick()
+		//this.onTick()
 	},
 	findBestAction:function(otherOrganisms,myOrganisms,depth){ //TODO To handle splits i need to be able to add multiple organisms to this function
 		var actions=[],
@@ -632,7 +644,7 @@ BotPrototype={
 			
 			for(var i=0;i<this.otherOrganisms.length;i++){
 				var otherOrganism=this.otherOrganisms[i]
-				miniMapCtx.strokeStyle="#5555FF"
+				miniMapCtx.strokeStyle="#4444FF"
 				miniMapCtx.strokeRect((otherOrganism.x-otherOrganism.size)/64,(otherOrganism.y-otherOrganism.size)/64,otherOrganism.size*2/64,otherOrganism.size*2/64)
 			}
 
