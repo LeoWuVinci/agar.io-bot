@@ -278,7 +278,7 @@ AiPrototype={
 		new ActionGenerator(
 			"Intercept small blob",
 			function(myOrganism,otherOrganism){
-				return !otherOrganism.isVirus&&otherOrganism.size<myOrganism.size//TODO *.85	
+				return !otherOrganism.isVirus&&otherOrganism.size<myOrganism.size*.85	
 			},
 			function(myOrganism,otherOrganism){
 				return true

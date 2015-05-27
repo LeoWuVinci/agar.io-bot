@@ -1,6 +1,7 @@
-
-
 /* Display logic */
+var friendlyAudio=$('<audio src="'+chrome.extension.getURL('smw_princess_help.wav')+'"></audio>').get(0)
+//friendlyAudio.play();
+
 Chart.defaults.Line.pointDot=false
 Chart.defaults.Line.showScale=false
 Chart.defaults.global.responsive=false

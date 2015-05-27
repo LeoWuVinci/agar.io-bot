@@ -16,5 +16,8 @@
 		"http://m.agar.io/*",
 		"storage",
 		"unlimitedStorage"
-	]
+	],
+	"web_accessible_resources":[
+		"*.wav"
+		]
 }
