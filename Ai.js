@@ -121,6 +121,7 @@ var Ai=function(move,split,shoot){
 	AiInterface.call(this,move,split,shoot)
 
 	chrome.storage.local.get("gameHistory",function(items){
+		if(items.gameHistory){
 		this.gameHistory=items.gameHistory
 
 		var weights=[],
@@ -129,20 +130,21 @@ var Ai=function(move,split,shoot){
 			weights[i]=0
 		}
 
-		for(var i=0;i<this.gameHistory.length;i++){
-			var stat=this.gameHistory[i],
-				totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
-			for(var j=0;j<stat.considerationWeights.length;j++){
-				var maxSize=Math.max.apply(null,stat.sizes);
-				if(maxSize!=0&&maxSize!=-Infinity){
-					weights[j]=stat.considerationWeights[j]/totalWeight*maxSize
-					totalMaxSize+=maxSize
+			for(var i=0;i<this.gameHistory.length;i++){
+				var stat=this.gameHistory[i],
+					totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
+				for(var j=0;j<stat.considerationWeights.length;j++){
+					var maxSize=Math.max.apply(null,stat.sizes);
+					if(maxSize!=0&&maxSize!=-Infinity){
+						weights[j]=stat.considerationWeights[j]/totalWeight*maxSize
+						totalMaxSize+=maxSize
+					}
 				}
 			}
-		}
 
-		this.totalWeights=weights
-		this.totalMaxSize=totalMaxSize
+			this.totalWeights=weights
+			this.totalMaxSize=totalMaxSize
+		}
 	}.bind(this))
 }
 
