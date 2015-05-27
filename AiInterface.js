@@ -1,10 +1,10 @@
-var BotInterface=function(move,split,shoot){
+var AiInterface=function(move,split,shoot){
 	this.move=move;
 	this.split=split;
 	this.shoot=shoot;
 }
 
-BotInterface.prototype={
+AiInterface.prototype={
 	tick:function(organisms,myOrganisms,score){},
 	move:function(x,y){},
 	split:function(){},

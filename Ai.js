@@ -111,14 +111,14 @@ var ActionGenerator=function(label,filter,calcPriority,weight,color,calcCoord){
 
 ActionGenerator.prototype=Object.create(Consideration.prototype)
 actionGeneratorPrototype={
-	calcCoord:function(myOrganism,otherOrganism,action){}
+	calcCoord:function(myOrganism,otherOrganism){}
 }
 for(key in actionGeneratorPrototype){
 	ActionGenerator.prototype[key]=actionGeneratorPrototype[key]
 }
 
-var Bot=function(move,split,shoot){
-	BotInterface.call(this,move,split,shoot)
+var Ai=function(move,split,shoot){
+	AiInterface.call(this,move,split,shoot)
 
 	chrome.storage.local.get("gameHistory",function(items){
 		this.gameHistory=items.gameHistory
@@ -146,10 +146,10 @@ var Bot=function(move,split,shoot){
 	}.bind(this))
 }
 
-Bot.prototype=Object.create(BotInterface.prototype)
+Ai.prototype=Object.create(AiInterface.prototype)
 //size = radius
 //score=size*size/100
-BotPrototype={
+AiPrototype={
 	expectedSplitCount:0,
 	onTick:function(){},
 	totalWeights:[],
@@ -281,21 +281,22 @@ BotPrototype={
 			function(myOrganism,otherOrganism){
 				return true
 			},
+			1,
+			'#FF0000',
 			function(myOrganism,otherOrganism){
-				var tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/2/Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
+				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2),.5)
 				//tells us how long it will take to reach the midpoint	
 				if (tickCount == Infinity){
 					tickCount=0
 				}
 
 				return new Action('move',
-					myOrganism.dx+myOrganism.dx2+organism.px+organism.dx*tickCount,
-					myOrganism.dy+myOrganism.dy2+organism.py+organism.dy*tickCount,
+					myOrganism.dx+myOrganism.dx2+otherOrganism.px+otherOrganism.dx*tickCount,
+					myOrganism.dy+myOrganism.dy2+otherOrganism.py+otherOrganism.dy*tickCount,
 					myOrganism,
-					organism)
-			},
-			1,
-			'#FF0000'
+					otherOrganism)
+			}
+
 		),
 		new ActionGenerator(
 			"Juke big blob",
@@ -305,21 +306,21 @@ BotPrototype={
 			function(myOrganism,otherOrganism){
 				return Math.pow(myOrganism.x-otherOrganism.y,2)+Math.pow(myOrganism.y-otherOrganism.y,2)
 			},
+			1,
+			'#00FF00',
 			function(myOrganism,otherOrganism){
-				var tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/2/Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
+				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2),.5)
 				//tells us how long it will take to reach the midpoint	
 				if (tickCount == Infinity){
 					tickCount=0
 				}
 
 				return new Action('move',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-organism.px-organism.dx*tickCount,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-organism.py-organism.dy*tickCount,
+					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px-otherOrganism.dx*tickCount,
+					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py-otherOrganism.dy*tickCount,
 					myOrganism,
-					organism)
-			},
-			1,
-			'#00FF00'
+					otherOrganism)
+			}
 		),
 		new ActionGenerator(
 			"B line away big blob",
@@ -329,15 +330,15 @@ BotPrototype={
 			function(myOrganism,otherOrganism){
 				return -Math.pow(myOrganism.x-otherOrganism.y,2)-Math.pow(myOrganism.y-otherOrganism.y,2)
 			},
+			1,
+			'#0000FF',
 			function(myOrganism,otherOrganism){
 				return new Action('move',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-organism.px-organism.dx-dx2,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-organism.py-organism.dy-dy2,
+					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px-otherOrganism.dx-otherOrganism.dx2,
+					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py-otherOrganism.dy-otherOrganism.dy2,
 					myOrganism,
-					organism)	
-			},
-			1,
-			'#0000FF'
+					otherOrganism)	
+			}
 		),
 		new ActionGenerator(
 			"B line away from virus",
@@ -347,18 +348,16 @@ BotPrototype={
 			function(myOrganism,otherOrganism){
 				return true
 			},
+			1,
+			'#0000FF',
 			function(myOrganism,otherOrganism){
 				return new Action('move',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-organism.px,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-organism.py,
+					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px,
+					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py,
 					myOrganism,
-					organism)	
-			},
-			1,
-			'#0000FF'
-		),
-
-
+					otherOrganism)	
+			}
+		)
 	],
 	lastAction:null,
 	currentState:'',
@@ -528,7 +527,21 @@ BotPrototype={
 	
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
-				action,
+				actionGenerators=this.actionGenerators
+					.filter(function(actionGenerator){return actionGenerator.filter(myOrganism,organism)}),
+				action
+				
+			if(actionGenerators.length){
+				action=actionGenerators.reduce(function(a,b){
+					if(a.weightedCalc(myOrganism,organism)>b.weightedCalc(myOrganism,organism)){
+						return a		
+					}
+					return b
+				}).calcCoord(myOrganism,organism)
+			}
+		
+			/*	
+				var action,
 				myVelocity=Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5),
 				tickCount=0;
 
@@ -577,6 +590,9 @@ BotPrototype={
 					action=new Action('split',organism.px,organism.py,myOrganism,organism) //FIXME
 				}
 			}
+
+			*/
+
 
 			/* reduce invisible wall drag */
 			//Map is I believe 11200x11200
@@ -698,45 +714,46 @@ BotPrototype={
 			miniMapCtx.strokeRect((this.lastAction.myOrganism.x-this.lastAction.myOrganism.size)/64,(this.lastAction.myOrganism.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)
 		}
 
-
-	 	while(lastAction){
-					//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
-				var myOrganism=lastAction.myOrganism
-				ctx.beginPath()
-				ctx.lineWidth=4
-				if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
-					ctx.strokeStyle='#FF0000'
-				}else{
-					ctx.strokeStyle='#00FF00'
-				}	
-				ctx.moveTo(myOrganism.x,myOrganism.y)
-				ctx.lineTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
-				ctx.stroke()
-			
-				ctx.lineWidth=1	
-				ctx.beginPath()
-				ctx.strokeStyle="#FFFFFF"
-				ctx.moveTo(myOrganism.x,myOrganism.y)
-				ctx.lineTo(lastAction.x,lastAction.y)
-				ctx.stroke()
-
-				if(lastAction.srcActions){
+		if(this.gameHistory.length%2){
+			while(lastAction){
+						//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
+					var myOrganism=lastAction.myOrganism
+					ctx.beginPath()
+					ctx.lineWidth=4
+					if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
+						ctx.strokeStyle='#FF0000'
+					}else{
+						ctx.strokeStyle='#00FF00'
+					}	
+					ctx.moveTo(myOrganism.x,myOrganism.y)
+					ctx.lineTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
+					ctx.stroke()
+				
 					ctx.lineWidth=1	
-					ctx.strokeStyle='#FF0000'
-					for(var i=0;i<lastAction.srcActions.length;i++){
-						ctx.beginPath()
-						ctx.moveTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
-						ctx.lineTo(lastAction.srcActions[i].otherOrganism.x,lastAction.srcActions[i].otherOrganism.y)
-						ctx.stroke()
+					ctx.beginPath()
+					ctx.strokeStyle="#FFFFFF"
+					ctx.moveTo(myOrganism.x,myOrganism.y)
+					ctx.lineTo(lastAction.x,lastAction.y)
+					ctx.stroke()
+
+					if(lastAction.srcActions){
+						ctx.lineWidth=1	
+						ctx.strokeStyle='#FF0000'
+						for(var i=0;i<lastAction.srcActions.length;i++){
+							ctx.beginPath()
+							ctx.moveTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
+							ctx.lineTo(lastAction.srcActions[i].otherOrganism.x,lastAction.srcActions[i].otherOrganism.y)
+							ctx.stroke()
+						}
 					}
-				}
-			//}
-			lastAction=lastAction.next
+				//}
+				lastAction=lastAction.next
+			}
 		}
 	}
 }
-for(key in BotPrototype){
-	Bot.prototype[key]=BotPrototype[key]
+for(key in AiPrototype){
+	Ai.prototype[key]=AiPrototype[key]
 }
 
 //TODO Become sentient.

@@ -380,7 +380,7 @@ if(d.keyCode == 72) { if(g.length > 0 && confirm("Sure to bug?")) g[0].ox = Numb
         e.translate(-s, -t);
         for (d = 0; d < C.length; d++) C[d].draw();
         for (d = 0; d < q.length; d++) q[d].draw();
-		bot.draw(e) //TODO premium feature
+		ai.draw(e) //TODO premium feature
         e.restore();
         x && e.drawImage(x, p - x.width - 10, 10);
         D = Math.max(D, Ma());
@@ -790,7 +790,7 @@ if(d.keyCode == 72) { if(g.length > 0 && confirm("Sure to bug?")) g[0].ox = Numb
     }
 
 	window.skinNames=[
-		'nomday.com/bot',
+		'nomday.com/lio',
 		'Yaranaika',
 		'Pokerface',
 		'Sir',
@@ -811,14 +811,14 @@ if(d.keyCode == 72) { if(g.length > 0 && confirm("Sure to bug?")) g[0].ox = Numb
 		'Qing Dynasty',
 	]
 
-	var bot=window.bot=new Bot(
+	var ai=window.ai=new Ai(
 			function(x,y){Q=x;R=y;H()},
 			function(){A(17)},
 			function(){A(21)})
 	var onUpdate=Ja
 	Ja=function(a){
 		onUpdate(a)
-		bot.tick(q,g,D)
+		ai.tick(q,g,D)
 	}
 
 	var onDeath=na
