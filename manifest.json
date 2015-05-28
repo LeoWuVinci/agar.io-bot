@@ -3,11 +3,14 @@
 	"name":"Lio's Agar.io AI",
 	"version":"1",
 	"page_action":{},
+	"background":{
+		"scripts":["eventPage.js"]
+	},
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/*"],
 			"css":["style.css"],
-			"js":["ext/jquery.js","ext/Chart.js","quadtree_3.js","AiInterface.js","Ai.js","main_out_504v2.js","view.js"],
+			"js":["ext/jquery.js","ext/Chart.js","quadtree_3.js","AiInterface.js","Ai.js","main_out_504v2.js","script.js"],
 //			"js":["ext/jquery.js","quadtree_3.js","main_out_504v3.js"],
 			"run_at":"document_end"
 		}

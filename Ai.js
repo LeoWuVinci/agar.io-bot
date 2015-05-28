@@ -156,6 +156,7 @@ AiPrototype={
 	onTick:function(){},
 	totalWeights:[],
 	totalMaxSize:0,
+	isTeachMode:1,
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
@@ -163,7 +164,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			3,
+			1,
 			'#FF5A5E'	
 		),
 		new Consideration(
@@ -172,7 +173,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			1,
+			0,
 			'#335A5E'	
 		),
 		new Consideration(
@@ -190,19 +191,18 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size
 			},
-			3,
+			1,
 			'#46BFBD'
 		),
 		new Consideration(
-			"Avoid Nearest Danger",
+			"Avoid Nearest Large Blob",
 			function(myOrganism,otherOrganism){
-				return otherOrganism.isVirus&&myOrganism.size>otherOrganism.size
-				||!otherOrganism.isVirus&&myOrganism.size<otherOrganism.size //TODO Break up filter into two different functions
+				return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size
 			},
-			function(myOrganism,otherOrganism,action){
-				return Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)+otherOrganism.size
+			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
+				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.size
 			},
-			2,
+			3,
 			'#46BF00'
 		),
 		new Consideration(
@@ -216,7 +216,7 @@ AiPrototype={
 				action.y=myOrganism.py*2-otherOrganism.py
 				return true
 			},
-			10,
+			3,
 			'#EEEEEE'
 		),
 		new Consideration(
@@ -229,7 +229,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return true 
 			},
-			6,
+			1,
 			'rgb(163,73,164)'
 		),
 		new Consideration(
@@ -238,7 +238,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
 			},
-			1,
+			2,
 			'#FDB45C'
 		),
 		new Consideration(
@@ -251,8 +251,19 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			10,
+			2,
 			'#33EE33'
+		),
+		new Consideration(
+			"Avoid Nearest Virus",
+			function(myOrganism,otherOrganism){
+				return otherOrganism.isVirus&&myOrganism.size>otherOrganism.size
+			},
+			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
+				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+myOrganism.size
+			},
+			1,
+			'#46FF22'
 		),
 		/*
 		new Consideration(
@@ -298,7 +309,6 @@ AiPrototype={
 					myOrganism,
 					otherOrganism)
 			}
-
 		),
 		new ActionGenerator(
 			"Juke big blob",
@@ -503,11 +513,14 @@ AiPrototype={
 
 				this.totalWeights=weights
 				this.totalMaxSize=totalMaxSize
-				
-				for(var i=0;i<weights.length;i++){
-					weights[i]/=totalMaxSize;
-					weights[i]+=Math.random()*100/(this.gameHistory.length%2?1:this.gameHistory.length)+1
-					this.considerations[i].weight=weights[i]	
+			
+				if(!this.isTeachMode){	
+					for(var i=0;i<weights.length;i++){
+						weights[i]/=totalMaxSize;
+						weights[i]=Math.pow(weights[i],10000000);
+						weights[i]+=Math.random()*100/(this.gameHistory.length%2?1:this.gameHistory.length)+1
+						this.considerations[i].weight=weights[i]	
+					}
 				}
 				
 				heatMapCtx.strokeStyle="#FF0000"
@@ -541,60 +554,6 @@ AiPrototype={
 					return b
 				}).calcCoord(myOrganism,organism)
 			}
-		
-			/*	
-				var action,
-				myVelocity=Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5),
-				tickCount=0;
-
-			if (myVelocity){
-				tickCount=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/myVelocity;
-			}
-
-			var midDist=Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)/2
-			var ratio=midDist/Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
-			if (ratio == Infinity){
-				ratio=0
-			}
-
-			if (organism.isVirus&&organism.size<myOrganism.size
-					||!organism.isVirus&&organism.size*.85>myOrganism.size
-			){
-			
-				//TODO Better interception when target is moving towards bot
-				if (Math.pow(Math.pow(myOrganism.px-organism.px,2)+Math.pow(myOrganism.py-organism.py,2),.5)<Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2)+Math.pow(organism.dx,2)+Math.pow(organism.dy,2)){
-					action=new Action(
-					'move',
-					myOrganism.px*2-organism.px,
-					myOrganism.py*2-organism.py,
-					myOrganism,
-					organism)
-
-				}else{
-					action=new Action(
-						'move',
-						myOrganism.dx+myOrganism.dx2+myOrganism.px*2-(organism.px+organism.dx*ratio),
-						myOrganism.dy+myOrganism.dy2+myOrganism.py*2-(organism.py+organism.dy*ratio),
-						myOrganism,
-						organism)
-				}
-			}else if (organism.name.substr(0,3)!='[L]'&&!organism.isVirus
-					&&organism.size<myOrganism.size*.85){
-				if (true|| //TODO this needs to be a consideration instead
-						organism.size<myOrganism.size*.3
-						||organism.size>myOrganism.size*.425
-						||myOrganism.size<65
-						||myOrganisms.length<this.expectedSplitCount
-						||Math.pow(Math.pow(organism.x-myOrganism.x,2)+Math.pow(organism.y-myOrganism.y,2),.5)>myOrganism.size*3
-				){	
-						action=new Action('move',myOrganism.dx+myOrganism.dx2+organism.px+organism.dx*ratio,myOrganism.dy+myOrganism.dy2+organism.py+organism.dy*ratio,myOrganism,organism)
-				}else{
-					action=new Action('split',organism.px,organism.py,myOrganism,organism) //FIXME
-				}
-			}
-
-			*/
-
 
 			/* reduce invisible wall drag */
 			//Map is I believe 11200x11200
@@ -716,7 +675,7 @@ AiPrototype={
 			miniMapCtx.strokeRect((this.lastAction.myOrganism.x-this.lastAction.myOrganism.size)/64,(this.lastAction.myOrganism.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)
 		}
 
-		if(this.gameHistory.length%2){
+		if(true||this.gameHistory.length%2){
 			while(lastAction){
 						//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
 					var myOrganism=lastAction.myOrganism
