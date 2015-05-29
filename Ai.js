@@ -212,11 +212,9 @@ AiPrototype={
 			function(myOrganism,otherOrganism){
 				return !otherOrganism.isVirus
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<otherOrganism.size+myOrganism.dx+myOrganism.dy+otherOrganism.dx+otherOrganism.dy},
+			},
 			function(myOrganism,otherOrganism,action){
-				action.x=myOrganism.px*2-otherOrganism.px
-				action.y=myOrganism.py*2-otherOrganism.py
-				return true
+				return -(1/this.computeDistanceFromEdge(myOrganism.px, myOrganism.py, otherOrganism.px, otherOrganism.py, otherOrganism.size))
 			},
 			3,
 			'#EEEEEE'
@@ -382,6 +380,19 @@ AiPrototype={
 	scoreHistory:[],
 	myOrganisms:[],
 	otherOrganisms:[],
+	computeDistance:function(x1, y1, x2, y2){
+		var xdis = x1 - x2;
+		var ydis = y1 - y2;
+		return Math.sqrt(Math.pow(xdis, 2) + Math.pow(ydis, 2));
+	}
+	computeDistanceFromEdge:function(x1, y1, x2, y2, s2){
+		var distance = this.computeDistance(x2, y2, x1, y1);
+		var ratioX = distance / (x2 - x1);
+		var ratioY = distance / (y2 - y1);
+		var offsetX = x2 - ( s2 / ratioX );
+		var offsetY = y2 - ( s2 / ratioY );
+		return this.computeDistance(x1, y1, offsetX, offsetY);
+	}
 	simulateAction:function(otherOrganisms,myOrganisms,action){
 		var clonedKeys=['x','y','px','py','dx','dy','size','name','isVirus'],
 			clonedOtherOrganisms=otherOrganisms.map(function(organism){
