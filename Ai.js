@@ -10,6 +10,7 @@ Advance Tactics
 //TODO revisit "Too close for comfort"
 //TODO Jump servers every 4hrs
 //TODO Consider 16 piece split has the ability to eat viruses when you have more than 100 mass
+//TODO High score
 
 //TODO Consider lost of velocity into calculating best moves
 //TODO Consider enemies about to merge
@@ -152,6 +153,7 @@ Ai.prototype=Object.create(AiInterface.prototype)
 //size = radius
 //score=size*size/100
 AiPrototype={
+	specialNames:{},
 	expectedSplitCount:0,
 	onTick:function(){},
 	totalWeights:[],
@@ -173,7 +175,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			0,
+			1,
 			'#335A5E'	
 		),
 		new Consideration(
@@ -206,7 +208,7 @@ AiPrototype={
 			'#46BF00'
 		),
 		new Consideration(
-			"Avoid Touching Larger Blobs",
+			"Avoid Colliding Larger Blobs",
 			function(myOrganism,otherOrganism){
 				return !otherOrganism.isVirus
 				&&myOrganism.size<otherOrganism.size
@@ -220,7 +222,7 @@ AiPrototype={
 			'#EEEEEE'
 		),
 		new Consideration(
-			"Avoid Touching Viruses",
+			"Avoid Colliding Viruses",
 			function(myOrganism,otherOrganism){
 				return otherOrganism.isVirus
 					&&myOrganism.size>otherOrganism.size
@@ -288,8 +290,10 @@ AiPrototype={
 	actionGenerators:[
 		new ActionGenerator(
 			"Intercept small blob",
-			function(myOrganism,otherOrganism){
-				return !otherOrganism.isVirus&&otherOrganism.size<myOrganism.size*.85	
+			function(myOrganism,otherOrganism,specialNames){
+				return !otherOrganism.isVirus
+					&&otherOrganism.size<myOrganism.size*.85
+					&&(!specialNames[otherOrganism.name]||specialNames[otherOrganism.name]=='ignore')	
 			},
 			function(myOrganism,otherOrganism){
 				return true
@@ -416,6 +420,10 @@ AiPrototype={
 			if(!organism.x2){
 				organism.x2=organism.nx
 				organism.y2=organism.ny
+
+				if(this.specialNames[organism.name]){
+					this.onFoundSpecialName(organism.name)
+				}
 			}
 			
 			/* velocity */
@@ -442,7 +450,7 @@ AiPrototype={
 			organism.py=organism.ny+organism.dy+organism.dy2
 
 			return myOrganisms.indexOf(organism)==-1
-		})
+		},this)
 
 		if(myOrganisms.length>=this.expectedSplitCount){
 			this.expectedSplitCount=0
@@ -471,11 +479,11 @@ AiPrototype={
 					||this.lastAction.otherOrganism.name!=action.otherOrganism.name
 				){
 					if(action.otherOrganism.isVirus){
-						console.log("avoiding virus", action.otherOrganism.name,[action])
+						console.info("avoiding virus", action.otherOrganism.name,[action])
 					}else if (action.otherOrganism.size>myOrganisms[0].size){
-						console.log("avoiding", action.otherOrganism.name,[action])
+						console.info("avoiding", action.otherOrganism.name,[action])
 					}else{
-						console.log("chasing", action.otherOrganism.name,[action])
+						console.info("chasing", action.otherOrganism.name,[action])
 					}
 				}
 				this.lastAction=action
@@ -525,9 +533,9 @@ AiPrototype={
 				
 				heatMapCtx.strokeStyle="#FF0000"
 				heatMapCtx.strokeRect((this.lastAction.x-this.lastAction.myOrganism.size)/64,(this.lastAction.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)	
-				console.log("DEAD x_X")
-				console.log("Score",~~(this.scoreHistory[this.scoreHistory.length-1]/100))
-				console.log("Time spent alive",(Date.now()-this.lastStateChangeDate.getTime())/60000,"mins")
+				console.info("DEAD x_X")
+				console.info("Score",~~(this.scoreHistory[this.scoreHistory.length-1]/100))
+				console.info("Time spent alive",(Date.now()-this.lastStateChangeDate.getTime())/60000,"mins")
 				this.scoreHistory=[]
 				this.lastStateChangeDate=new Date
 			}
@@ -543,7 +551,7 @@ AiPrototype={
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
 				actionGenerators=this.actionGenerators
-					.filter(function(actionGenerator){return actionGenerator.filter(myOrganism,organism)}),
+					.filter(function(actionGenerator){return actionGenerator.filter(myOrganism,organism,this.specialNames)},this),
 				action
 				
 			if(actionGenerators.length){
@@ -690,7 +698,7 @@ AiPrototype={
 					ctx.lineTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
 					ctx.stroke()
 				
-					ctx.lineWidth=1	
+					ctx.lineWidth=2	
 					ctx.beginPath()
 					ctx.strokeStyle="#FFFFFF"
 					ctx.moveTo(myOrganism.x,myOrganism.y)

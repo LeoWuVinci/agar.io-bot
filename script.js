@@ -1,6 +1,9 @@
 /* Display logic */
 var friendlyAudio=$('<audio src="'+chrome.extension.getURL('smw_princess_help.wav')+'"></audio>').get(0)
-//friendlyAudio.play();
+
+ai.onFoundSpecialName=function(name){
+	friendlyAudio.play();
+}
 
 Chart.defaults.Line.pointDot=false
 Chart.defaults.Line.showScale=false
@@ -82,15 +85,19 @@ miniMapCtx=miniMapCanvas.get(0).getContext("2d")
 chrome.runtime.onMessage.addListener(function(m,s,res){
 	switch(m[0]){
 		case 'intuition':
-			if(m[1]&&m[2]){
-				ai.considerations[m[1]].weight=parseInt(m[2])
-				console.log(m[1],m[2])
-			}
+			ai.considerations[m[1]].weight=m[2]
 			res(ai.considerations)
 			break;
 		case 'teach':
 			ai.isTeachMode=m[1]
 			res(ai.isTeachMode)
-			break;	
+			break;
+		case 'specialNames':
+			if(m[2]=="remove"){
+				delete ai.specialNames[m[1]]
+			}else{
+				ai.specialNames[m[1]]=m[2]
+			}
+			break;
 	}
 })
