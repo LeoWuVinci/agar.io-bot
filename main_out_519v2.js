@@ -122,7 +122,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
     } else {
       setInterval(draw, 1E3 / 60);
     }
-    setInterval(emit, 40);
+    //setInterval(emit, 40);
     if (currentValue) {
       $("#region").val(currentValue);
     }

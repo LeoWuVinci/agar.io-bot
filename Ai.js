@@ -204,7 +204,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.size
 			},
-			5,
+			0,
 			'#46BF00'
 		),
 		new Consideration(
@@ -231,7 +231,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return true 
 			},
-			5,
+			0,
 			'rgb(163,73,164)'
 		),
 		new Consideration(
@@ -240,7 +240,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
 			},
-			1,
+			0,
 			'#FDB45C'
 		),
 		new Consideration(
@@ -253,7 +253,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			5,
+			0,
 			'#33EE33'
 		),
 		new Consideration(
