@@ -1,6 +1,6 @@
 {
 	"manifest_version":2,
-	"name":"Lio's Agar.io AI",
+	"name":"Lio's Agar.io AI Framework",
 	"version":"1",
 	"page_action":{},
 	"background":{
@@ -10,8 +10,15 @@
 		{
 			"matches":["http://agar.io/*"],
 			"css":["style.css"],
-			"js":["ext/jquery.js","ext/Chart.js","quadtree_3.js","AiInterface.js","Ai.js","main_out_504v2.js","script.js"],
-//			"js":["ext/jquery.js","quadtree_3.js","main_out_504v3.js"],
+			"js":[
+				"ext/jquery.js",
+				"ext/Chart.js",
+				"quadtree_3.js",
+				"AiInterface.js",
+				"Ai.js",
+				"main_out_519v2.js",
+				"script.js"
+			],
 			"run_at":"document_end"
 		}
 	],

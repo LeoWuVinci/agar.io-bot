@@ -173,7 +173,7 @@ if(d.keyCode == 72) { if(g.length > 0 && confirm("Sure to bug?")) g[0].ox = Numb
         a = new ArrayBuffer(5);
         var b = new DataView(a);
         b.setUint8(0, 254);
-        b.setUint32(1, 1, !0);
+        b.setUint32(1, 4, !0);
         m.send(a);
         a = new ArrayBuffer(5);
         b = new DataView(a);
@@ -260,7 +260,7 @@ if(d.keyCode == 72) { if(g.length > 0 && confirm("Sure to bug?")) g[0].ox = Numb
             d = a.getUint32(c, !0);
             c += 4;
             if (0 == d) break;
-            for (var e = a.getFloat32(c, !0), c = c + 4, k = a.getFloat32(c, !0), c = c + 4, f = a.getFloat32(c, !0), c = c + 4, h = a.getUint8(c++), m = a.getUint8(c++), p = a.getUint8(c++), h = (h << 16 | m << 8 | p).toString(16); 6 > h.length;) h = "0" + h;
+            for (var e = a.getUint16(c, !0), c = c + 4, k = a.getUint16(c, !0), c = c + 4, f = a.getUint16(c, !0), c = c + 4, h = a.getUint8(c++), m = a.getUint8(c++), p = a.getUint8(c++), h = (h << 16 | m << 8 | p).toString(16); 6 > h.length;) h = "0" + h;
             var h = "#" + h,
                 l = a.getUint8(c++),
                 m = !!(l & 1),

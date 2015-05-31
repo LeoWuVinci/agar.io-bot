@@ -84,8 +84,9 @@ miniMapCtx=miniMapCanvas.get(0).getContext("2d")
 
 chrome.runtime.onMessage.addListener(function(m,s,res){
 	switch(m[0]){
-		case 'intuition':
+		case 'setIntuition':
 			ai.considerations[m[1]].weight=m[2]
+		case 'getIntuition':
 			res(ai.considerations)
 			break;
 		case 'teach':
@@ -98,6 +99,9 @@ chrome.runtime.onMessage.addListener(function(m,s,res){
 			}else{
 				ai.specialNames[m[1]]=m[2]
 			}
+			break;
+		case 'setDirection':
+			ai.direction=m[1]
 			break;
 	}
 })

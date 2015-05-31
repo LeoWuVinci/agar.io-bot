@@ -166,7 +166,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			1,
+			0,
 			'#FF5A5E'	
 		),
 		new Consideration(
@@ -175,7 +175,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			1,
+			0,
 			'#335A5E'	
 		),
 		new Consideration(
@@ -184,14 +184,14 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			2,
+			0,
 			'#AA5A5E'	
 		),
 		new Consideration(
 			"Chase Nearest Small Blob",
 			function(myOrganism,otherOrganism){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size},
 			function(myOrganism,otherOrganism,action){
-				return -Math.pow(Math.pow(myOrganism.px-action.x,2)+Math.pow(myOrganism.py-action.y,2),.5)-myOrganism.size
+				return -Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size
 			},
 			1,
 			'#46BFBD'
@@ -204,7 +204,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.size
 			},
-			3,
+			5,
 			'#46BF00'
 		),
 		new Consideration(
@@ -218,7 +218,7 @@ AiPrototype={
 				action.y=myOrganism.py*2-otherOrganism.py
 				return true
 			},
-			3,
+			0,
 			'#EEEEEE'
 		),
 		new Consideration(
@@ -231,7 +231,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return true 
 			},
-			1,
+			5,
 			'rgb(163,73,164)'
 		),
 		new Consideration(
@@ -240,7 +240,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
 			},
-			2,
+			1,
 			'#FDB45C'
 		),
 		new Consideration(
@@ -253,7 +253,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			2,
+			5,
 			'#33EE33'
 		),
 		new Consideration(
@@ -264,9 +264,33 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+myOrganism.size
 			},
-			1,
+			0,
 			'#46FF22'
 		),
+		new Consideration(
+			"Chat Movement", //10 second delay lolz
+			function(myOrganism,otherOrganism){
+				return true	
+			},
+			function(myOrganism,otherOrganism,action){
+				switch(action.direction){
+					case 'up':
+						return -action.y
+					case 'down':
+						return action.y
+					case 'left':
+						return -action.x
+					case 'right':
+						return action.x
+					default:
+						return 0;
+				}
+			},
+			0,
+			'#A0BB33'
+		),
+
+
 		/*
 		new Consideration(
 			"Split based on Size",
@@ -287,6 +311,7 @@ AiPrototype={
 		)
 		*/
 	],
+	direction:'',
 	actionGenerators:[
 		new ActionGenerator(
 			"Intercept small blob",
@@ -580,6 +605,10 @@ AiPrototype={
 				}else if(action.y-myOrganism.size<0){
 					action.y=myOrganism.size;
 					action.x+=action.x-myOrganism.x
+				}
+
+				if(this.direction){
+					action.direction=this.direction
 				}
 
 				actions.push(action)
