@@ -1,3 +1,25 @@
+#intuition-div {
+	display: none;
+}
+
+#intuition-panel {
+	position: fixed;
+	bottom: 40px;
+	left: 10px;
+	background-color: rgba(0,0,0,.5);
+	width:350px;	
+}
+
+#intuition-panel label {
+	color: #FFF;
+}
+
+#edit-intuition-btn {
+	position:fixed;
+	bottom: 10px;
+	left: 150px;
+}
+
 #score-chart {
 	position:fixed;
 	top:0px;

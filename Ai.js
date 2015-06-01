@@ -166,7 +166,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			0,
+			3,
 			'#FF5A5E'	
 		),
 		new Consideration(
@@ -175,7 +175,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			0,
+			3,
 			'#335A5E'	
 		),
 		new Consideration(
@@ -184,7 +184,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			0,
+			2,
 			'#AA5A5E'	
 		),
 		new Consideration(
@@ -193,7 +193,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size
 			},
-			1,
+			2,
 			'#46BFBD'
 		),
 		new Consideration(
@@ -204,7 +204,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.size
 			},
-			0,
+			3,
 			'#46BF00'
 		),
 		new Consideration(
@@ -218,7 +218,7 @@ AiPrototype={
 				action.y=myOrganism.py*2-otherOrganism.py
 				return true
 			},
-			0,
+			4,
 			'#EEEEEE'
 		),
 		new Consideration(
@@ -231,7 +231,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return true 
 			},
-			0,
+			4,
 			'rgb(163,73,164)'
 		),
 		new Consideration(
@@ -240,7 +240,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
 			},
-			0,
+			1,
 			'#FDB45C'
 		),
 		new Consideration(
@@ -253,7 +253,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size	
 			},
-			0,
+			3,
 			'#33EE33'
 		),
 		new Consideration(
@@ -264,7 +264,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+myOrganism.size
 			},
-			0,
+			3,
 			'#46FF22'
 		),
 		new Consideration(
@@ -286,7 +286,7 @@ AiPrototype={
 						return 0;
 				}
 			},
-			0,
+			20,
 			'#A0BB33'
 		),
 
@@ -400,6 +400,7 @@ AiPrototype={
 			}
 		)
 	],
+	linesEnabled:true,
 	lastAction:null,
 	currentState:'',
 	lastStateChangeDate:null,
@@ -712,7 +713,7 @@ AiPrototype={
 			miniMapCtx.strokeRect((this.lastAction.myOrganism.x-this.lastAction.myOrganism.size)/64,(this.lastAction.myOrganism.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)
 		}
 
-		if(true||this.gameHistory.length%2){
+		if(this.linesEnabled&&(true||this.gameHistory.length%2)){
 			while(lastAction){
 						//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
 					var myOrganism=lastAction.myOrganism

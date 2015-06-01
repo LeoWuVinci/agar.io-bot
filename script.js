@@ -103,5 +103,35 @@ chrome.runtime.onMessage.addListener(function(m,s,res){
 		case 'setDirection':
 			ai.direction=m[1]
 			break;
+		case 'setLines':
+			ai.linesEnabled=m[1]
+			break;
+		case 'getAi':
+			res(ai[m[1]])
+			break;
+		case 'setAi':
+			ai[m[1]]=m[2]
+			break;
 	}
+})
+
+var intuitionPanel=$('<div id="intuition-div"><div id="intuition-panel" class="panel panel-default"><div id="intuition-body" class="panel-body"><form id="intuition-form" class="form-horizontal"></form></div></div></div>').appendTo('body')
+
+ai.considerations.forEach(function(consideration,i){
+	$('<div class="form-group">'
+			+'<label for="rule-'+i+'" class="col-sm-9 control-label">'
+				+consideration.label
+			+'</label>'
+		+'</div>')
+		.append($('<div class="col-sm-3">'
+			+'<input type="text" class="form-control" id="rule-'+i+'" value="'+consideration.weight+'" />'
+			+'</div>'
+			).change(function(){
+			consideration.weight=parseInt($(this).children('input').val())	
+		}))
+		.appendTo('#intuition-form')	
+})
+
+$('<button id="edit-intuition-btn" class="btn btn-primary">Edit Intuition</button>').appendTo('body').click(function(){
+	intuitionPanel.fadeToggle()
 })

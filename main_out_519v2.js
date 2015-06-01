@@ -298,6 +298,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
        */
       success : function(status) {
         status = status.split("\n");
+		$('#ip-address').html(status[0])
         open("ws://" + status[0]);
       },
       dataType : "text",
@@ -2137,3 +2138,5 @@ $('#gamemode').remove()
 $('#playBtn').next().remove()
 
 setDarkTheme(true)
+
+$('body').append('<div id="ip-address"></div>')
