@@ -20,6 +20,13 @@
 	left: 150px;
 }
 
+#teach-btn {
+	position:fixed;
+	bottom: 10px;
+	right: 200px;
+}
+
+
 #score-chart {
 	position:fixed;
 	top:0px;

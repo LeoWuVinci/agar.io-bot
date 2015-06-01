@@ -52,7 +52,7 @@ ai.onTick=function(){
 		scoreChart.update()
 
 		if(this.isTeachMode){
-			$('#ai-status').html('TEACH MODE')
+			$('#ai-status').html('Intuition')
 		}else if(this.gameHistory.length<100) {
 			$('#ai-status').html('<span style="color:red">LEARNING FOR 100 LIVES (life '+(this.gameHistory.length+1)+')</span>')
 		}else if(this.gameHistory.length%2){
@@ -134,4 +134,13 @@ ai.considerations.forEach(function(consideration,i){
 
 $('<button id="edit-intuition-btn" class="btn btn-primary">Edit Intuition</button>').appendTo('body').click(function(){
 	intuitionPanel.fadeToggle()
+})
+
+$('<button id="teach-btn" class="btn btn-success active">Teach On</button>').appendTo('body').click(function(){
+	ai.isTeachMode=!ai.isTeachMode
+	if(ai.isTeachMode){
+		$(this).addClass('btn-success').removeClass('btn-default').addClass('active').html("Teach On")
+	}else{
+		$(this).addClass('btn-default').removeClass('btn-success').removeClass('active').html("Teach Off")
+	}
 })
