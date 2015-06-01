@@ -83,15 +83,10 @@ $('body').append(miniMapCanvas)
 miniMapCtx=miniMapCanvas.get(0).getContext("2d")
 
 chrome.runtime.onMessage.addListener(function(m,s,res){
+	console.log('ai',m)
 	switch(m[0]){
 		case 'setIntuition':
 			ai.considerations[m[1]].weight=m[2]
-		case 'getIntuition':
-			res(ai.considerations)
-			break;
-		case 'teach':
-			ai.isTeachMode=m[1]
-			res(ai.isTeachMode)
 			break;
 		case 'specialNames':
 			if(m[2]=="remove"){
@@ -99,12 +94,6 @@ chrome.runtime.onMessage.addListener(function(m,s,res){
 			}else{
 				ai.specialNames[m[1]]=m[2]
 			}
-			break;
-		case 'setDirection':
-			ai.direction=m[1]
-			break;
-		case 'setLines':
-			ai.linesEnabled=m[1]
 			break;
 		case 'getAi':
 			res(ai[m[1]])
