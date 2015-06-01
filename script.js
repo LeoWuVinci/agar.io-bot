@@ -41,13 +41,13 @@ ai.onTick=function(){
 	if(!((this.scoreHistory.length+1)%10)){
 		var j=0;
 		for(var i=this.scoreHistory.length>100?this.scoreHistory.length-100:0;i<this.scoreHistory.length;i++){
-			scoreChart.datasets[0].points[j++].value=~~(this.scoreHistory[i])	
+			scoreChart.datasets[0].points[j++].value=~~(this.scoreHistory[i])
 		}
 
 		j=0
 		for(var i=this.gameHistory.length>10?this.gameHistory.length-10:0;i<this.gameHistory.length;i++){
 			var gameStat=this.gameHistory[i];
-			scoreChart.datasets[1].points[10*j++].value=~~(gameStat.maxSize)	
+			scoreChart.datasets[1].points[10*j++].value=~~(gameStat.maxSize)
 		}
 		scoreChart.update()
 
@@ -116,9 +116,9 @@ ai.considerations.forEach(function(consideration,i){
 			+'<input type="text" class="form-control" id="rule-'+i+'" value="'+consideration.weight+'" />'
 			+'</div>'
 			).change(function(){
-			consideration.weight=parseInt($(this).children('input').val())	
+			consideration.weight=parseInt($(this).children('input').val())
 		}))
-		.appendTo('#intuition-form')	
+		.appendTo('#intuition-form')
 })
 
 $('<button id="edit-intuition-btn" class="btn btn-primary">Edit Intuition</button>').appendTo('body').click(function(){
