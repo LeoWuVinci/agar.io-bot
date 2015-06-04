@@ -741,7 +741,7 @@ AiPrototype={
 					//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
 					var myOrganism=lastAction.myOrganism
 
-					if(!lastAction.srcActions.length){
+					if(!lastAction.srcActions || !lastAction.srcActions.length){
 						ctx.beginPath()
 						ctx.lineWidth=4
 						if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
