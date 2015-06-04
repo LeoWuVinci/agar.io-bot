@@ -1,5 +1,6 @@
 #intuition-div {
 	display: none;
+	z-index: 30;
 }
 
 #intuition-panel {
@@ -61,4 +62,10 @@
 
 h4 {
 	color: #EEE !important;
+}
+
+#last-action-best-5 {
+	position: fixed;
+	bottom: 50px;
+	color: #FFF;
 }

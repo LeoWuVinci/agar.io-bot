@@ -822,13 +822,16 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
     d = height / ratio;
     /** @type {number} */
     i = -0.5 + (-left + w / 2) % 50;
+	/*
     for (;i < w;i += 50) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
       ctx.lineTo(i, d);
       ctx.stroke();
     }
+	*/
     /** @type {number} */
+	/*
     i = -0.5 + (-t + d / 2) % 50;
     for (;i < d;i += 50) {
       ctx.beginPath();
@@ -836,6 +839,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
       ctx.lineTo(w, i);
       ctx.stroke();
     }
+	*/
     ctx.restore();
     arr.sort(function(a, b) {
       return a.size == b.size ? a.id - b.id : a.size - b.size;
@@ -2107,6 +2111,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 })(window, jQuery);
 
 window.skinNames=[
+	'twitch/gamerlio',
 	'nomday.com/lio',
 	'Yaranaika',
 	'Pokerface',

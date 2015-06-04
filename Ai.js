@@ -45,6 +45,8 @@ Organism.prototype={
 	py:0,
 	dx:0,
 	dy:0,
+	dx2:0,
+	dy2:0,
 	size:0,
 	isVirus:false
 }
@@ -62,14 +64,21 @@ Action.prototype={
 	y:0,
 	myOrganism:null,
 	otherOrganism:null,
+	weightedValues:[],
 	calcImportance:function(considerations){
-		var values=considerations
+		var filteredConsiderations=considerations
 			.filter(function(consideration){return consideration.filter(this.myOrganism,this.otherOrganism,this)},this)
-			.map(function(consideration,i,filteredConsiderations){
-					return consideration.weightedCalc(this.myOrganism,this.otherOrganism,this)/filteredConsiderations.length},this)
-
-		if(values.length){
-			return values.reduce(function(a,b){return a+b})
+			
+		if(filteredConsiderations.length){
+			if(!this.weightedValues.length){
+				this.weightedValues=filteredConsiderations.map(function(consideration){
+					return [consideration.weightedCalc(this.myOrganism,this.otherOrganism,this),consideration]
+				},this)
+				this.weightedValues.sort(function(a,b){
+					return b[0]-a[0]
+				})
+			}
+			return this.weightedValues[0][0]/filteredConsiderations.map(function(consideration){return consideration.weight}).reduce(function(a,b){return a+b})
 		}
 		return 0
 	}
@@ -153,12 +162,14 @@ Ai.prototype=Object.create(AiInterface.prototype)
 //size = radius
 //score=size*size/100
 AiPrototype={
+	onDraw:function(){},
 	specialNames:{},
 	expectedSplitCount:0,
 	onTick:function(){},
 	totalWeights:[],
 	totalMaxSize:0,
 	isTeachMode:1,
+	lastActionBest5:[],
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
@@ -218,7 +229,7 @@ AiPrototype={
 				action.y=myOrganism.py*2-otherOrganism.py
 				return true
 			},
-			4,
+			6,
 			'#EEEEEE'
 		),
 		new Consideration(
@@ -572,7 +583,17 @@ AiPrototype={
 	},
 	findBestAction:function(otherOrganisms,myOrganisms,depth){ //TODO To handle splits i need to be able to add multiple organisms to this function
 		var actions=[],
-			myOrganism=myOrganisms[0]
+			myOrganism=new Organism(),
+			totalSize=myOrganisms
+				.map(function(myOrganism){return myOrganism.size})
+				.reduce(function(a,b){return a+b})
+
+		for(var key in Organism.prototype){
+			var totalValue=myOrganisms
+				.map(function(myOrganism){return myOrganism[key]*myOrganism.size})
+				.reduce(function(a,b){return a+b})
+			myOrganism[key]=totalValue/totalSize
+		}
 
 		for(var i=0;i<otherOrganisms.length;i++){
 			var organism=otherOrganisms[i],
@@ -696,6 +717,8 @@ AiPrototype={
 			}.bind(this))
 		}
 
+		this.lastActionBest5=actions.slice(0,5)
+
 		return actions[0]
 	},
 	draw:function(ctx){
@@ -713,20 +736,23 @@ AiPrototype={
 			miniMapCtx.strokeRect((this.lastAction.myOrganism.x-this.lastAction.myOrganism.size)/64,(this.lastAction.myOrganism.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)
 		}
 
-		if(this.linesEnabled&&(true||this.gameHistory.length%2)){
+		if(this.linesEnabled){
 			while(lastAction){
-						//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
+					//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
 					var myOrganism=lastAction.myOrganism
-					ctx.beginPath()
-					ctx.lineWidth=4
-					if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
-						ctx.strokeStyle='#FF0000'
-					}else{
-						ctx.strokeStyle='#00FF00'
+
+					if(!lastAction.srcActions.length){
+						ctx.beginPath()
+						ctx.lineWidth=4
+						if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
+							ctx.strokeStyle='#FF0000'
+						}else{
+							ctx.strokeStyle='#00FF00'
+						}
+						ctx.moveTo(myOrganism.x,myOrganism.y)
+						ctx.lineTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
+						ctx.stroke()
 					}
-					ctx.moveTo(myOrganism.x,myOrganism.y)
-					ctx.lineTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
-					ctx.stroke()
 
 					ctx.lineWidth=2
 					ctx.beginPath()
@@ -740,8 +766,8 @@ AiPrototype={
 						ctx.strokeStyle='#FF0000'
 						for(var i=0;i<lastAction.srcActions.length;i++){
 							ctx.beginPath()
-							ctx.moveTo(lastAction.otherOrganism.x,lastAction.otherOrganism.y)
-							ctx.lineTo(lastAction.srcActions[i].otherOrganism.x,lastAction.srcActions[i].otherOrganism.y)
+							ctx.moveTo(myOrganism.x,lastAction.otherOrganism.y)
+							ctx.lineTo(myOrganism.x,lastAction.srcActions[i].otherOrganism.y)
 							ctx.stroke()
 						}
 					}
@@ -749,6 +775,7 @@ AiPrototype={
 				lastAction=lastAction.next
 			}
 		}
+		this.onDraw()
 	}
 }
 for(key in AiPrototype){
