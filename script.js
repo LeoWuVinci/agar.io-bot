@@ -145,11 +145,27 @@ $('<button id="teach-btn" class="btn btn-success active">Teach On</button>').app
 	}
 })
 
+var myOrganismStatsDiv=$('<div id="my-organism-stats"></div>').appendTo('body')
+
 ai.onDraw=function(){
 	if(ai.lastActionBest5.length){
 		lastActionBest5Div.html(ai.lastActionBest5
-			.map(function(action){return '<li>'+action.type+'('+~~action.x+','+~~action.y+') '+action.otherOrganism.name+' '+(action.weightedValues[0]?action.weightedValues[0][1].label:'')+'</li>'})
+			.map(function(action){return '<li>'
+				+action.calcImportance(ai.considerations).toFixed(3)+' '
+				+action.type
+				+'('+~~action.x+','+~~action.y+') '
+				+(action.weightedValues[0]?action.weightedValues[0][1].label:'')+' '
+				+action.otherOrganism.name
+				+'</li>'})
 			.reduce(function(a,b){return a+b})
+			)
+	}
+	if(this.lastAction){
+		var myOrganism=this.lastAction.myOrganism
+		myOrganismStatsDiv.html(
+			'v='+Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5).toFixed(3)
+			+' a='+Math.pow(Math.pow(myOrganism.dx2,2)+Math.pow(myOrganism.dy2,2),.5).toFixed(3)
+			+' j='+Math.pow(Math.pow(myOrganism.dx3,2)+Math.pow(myOrganism.dy3,2),.5).toFixed(3)
 			)
 	}
 }
