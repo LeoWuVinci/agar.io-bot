@@ -848,17 +848,19 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
     ctx.translate(width / 2, height / 2);
     ctx.scale(ratio, ratio);
     ctx.translate(-left, -t);
+	/** @type {number} */
+    i = 0;
+    for (;i < arr.length;i++) {
+      arr[i].draw();
+    }
+
+
     /** @type {number} */
     i = 0;
     for (;i < sprites.length;i++) {
       sprites[i].draw();
     }
-    /** @type {number} */
-    i = 0;
-    for (;i < arr.length;i++) {
-      arr[i].draw();
-    }
-	ai.draw(ctx)
+    	ai.draw(ctx)
     ctx.restore();
     if (img) {
       if (img.width) {
@@ -2095,8 +2097,8 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 
 	var ai=window.ai=new Ai(
 			function(x1,y2){value=x1;x=y2;emit()},
-			function(){A(17)},
-			function(){A(21)})
+			function(){registerEvent(17)},
+			function(){registerEvent(21)})
 	var onUpdate=run
 	run=function(a){
 		onUpdate(a)

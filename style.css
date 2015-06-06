@@ -1,12 +1,12 @@
 #intuition-div {
 	display: none;
 	z-index: 30;
-}
-
-#intuition-panel {
 	position: fixed;
 	bottom: 40px;
 	left: 10px;
+}
+
+#intuition-panel {
 	background-color: rgba(0,0,0,.5);
 	width:350px;	
 }
@@ -68,4 +68,12 @@ h4 {
 	position: fixed;
 	bottom: 50px;
 	color: #FFF;
+}
+
+#my-organism-stats {
+	position: fixed;
+	bottom:200px;
+	color: #FFF;
+	width: 100%;
+	text-align: center;
 }
