@@ -93,7 +93,7 @@ chrome.runtime.onMessage.addListener(function(m,s,res){
 	console.log('ai',m)
 	switch(m[0]){
 		case 'setIntuition':
-			ai.considerations[m[1]].weight=m[2]
+			ai.considerations[m[1]].weight=Math.abs(parseInt(m[2]))
 			res(m)
 			break;
 		case 'specialNames':
@@ -127,7 +127,7 @@ ai.considerations.forEach(function(consideration,i){
 			+'<input type="text" class="form-control" id="rule-'+i+'" value="'+consideration.weight+'" />'
 			+'</div>'
 			).change(function(){
-			consideration.weight=parseInt($(this).children('input').val())
+			consideration.weight=Math.abs(parseInt($(this).children('input').val()))
 		}))
 		.appendTo('#intuition-form')
 })
@@ -151,7 +151,7 @@ ai.onDraw=function(){
 	if(ai.lastActionBest5.length){
 		lastActionBest5Div.html(ai.lastActionBest5
 			.map(function(action){return '<li>'
-				+action.calcImportance(ai.considerations).toFixed(3)+' '
+				+(action.calcImportance(ai.considerations)*1000).toFixed(1)+' '
 				+action.type
 				+'('+~~action.x+','+~~action.y+') '
 				+(action.weightedValues[0]?action.weightedValues[0][1].label:'')+' '

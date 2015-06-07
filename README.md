@@ -39,3 +39,5 @@ Breath-first search using the fitness score and time
 * Sniper
 * Bet the score
 * VIP
+
+BTC Donation: 1LJ6Bh9oAGJbyFH4HmonyPLHi1sFPzwyYf
