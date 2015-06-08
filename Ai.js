@@ -1,3 +1,4 @@
+"use strict";
 /*
 Advance Tactics
 1. Using viruses to trap players
@@ -39,18 +40,12 @@ Stat.prototype={
 	considerationWeights:[]
 }
 
-var Organism=function(){}
+var Organism=function(){this.dCoords=[]}
 Organism.prototype={
 	x:0,
 	y:0,
 	px:0,
 	py:0,
-	dx:0,
-	dy:0,
-	dx2:0,
-	dy2:0,
-	dx3:0,
-	dy3:0,
 	size:0,
 	isVirus:false
 }
@@ -118,10 +113,10 @@ var ActionGenerator=function(label,filter,calcPriority,weight,color,genAction){
 }
 
 ActionGenerator.prototype=Object.create(Consideration.prototype)
-actionGeneratorPrototype={
+var actionGeneratorPrototype={
 	genAction:function(myOrganism,otherOrganism){}
 }
-for(key in actionGeneratorPrototype){
+for(var key in actionGeneratorPrototype){
 	ActionGenerator.prototype[key]=actionGeneratorPrototype[key]
 }
 
@@ -159,7 +154,7 @@ var Ai=function(move,split,shoot){
 Ai.prototype=Object.create(AiInterface.prototype)
 //size = radius
 //score=size*size/100
-AiPrototype={
+var AiPrototype={
 	splitCooldown:10000,
 	depth:4,
 	onDraw:function(){},
@@ -169,6 +164,8 @@ AiPrototype={
 	totalMaxSize:0,
 	isTeachMode:1,
 	lastActionBest5:[],
+	predictionDepth:2,
+	cushion:200,
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
@@ -194,7 +191,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			100,
+			1000,
 			'#AA5A5E'
 		),
 		new Consideration(
@@ -203,7 +200,7 @@ AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size
 			},
-			150,
+			1500,
 			'#46BFBD'
 		),
 		new Consideration(
@@ -223,11 +220,11 @@ AiPrototype={
 				return action.type=='move'
 				&&!otherOrganism.isVirus
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+150},
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+Ai.prototype.cushion},
 			function(myOrganism,otherOrganism,action){
 				return true;
 			},
-			1000,
+			5000,
 			'#EEEEEE'
 		),
 		new Consideration(
@@ -236,12 +233,12 @@ AiPrototype={
 				return action.type=='move'
 					&&otherOrganism.isVirus
 					&&myOrganism.size>otherOrganism.size
-					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size+myOrganism.dx+myOrganism.dy //TODO Consider taking out pow(,.5)
+					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size+myOrganism.dCoords[1][0]+myOrganism.dCoords[1][1] //TODO Consider taking out pow(,.5)
 			},
 			function(myOrganism,otherOrganism,action){
 				return true
 			},
-			500,
+			2000,
 			'rgb(163,73,164)'
 		) ,
 		new Consideration(
@@ -329,7 +326,7 @@ AiPrototype={
 				&&!otherOrganism.isVirus
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+50},
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+~~(Ai.prototype/3)},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
 			},
@@ -342,9 +339,10 @@ AiPrototype={
 				var dist=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)
 
 				return action.type=='shoot'
+				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size
-				&&dist>otherOrganism.size+50
-				&&dist<=otherOrganism.size+100
+				&&dist>otherOrganism.size+~~(Ai.prototype/3)
+				&&dist<=otherOrganism.size+~~(Ai.prototype*2/3)
 				},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
@@ -380,15 +378,15 @@ AiPrototype={
 			1,
 			'#FF0000',
 			function(myOrganism,otherOrganism){
-				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2),.5)
+				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dCoords[1][0],2)+Math.pow(otherOrganism.dCoords[1][1],2),.5)
 				//tells us how long it will take to reach the midpoint
 				if (tickCount == Infinity){
 					tickCount=0
 				}
 
 				return new Action('move',
-					myOrganism.dx+myOrganism.dx2+otherOrganism.px+otherOrganism.dx*tickCount,
-					myOrganism.dy+myOrganism.dy2+otherOrganism.py+otherOrganism.dy*tickCount,
+					myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0]+otherOrganism.px+otherOrganism.dCoords[1][0]*tickCount,
+					myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1]+otherOrganism.py+otherOrganism.dCoords[1][1]*tickCount,
 					myOrganism,
 					otherOrganism)
 			}
@@ -404,15 +402,15 @@ AiPrototype={
 			1,
 			'#00FF00',
 			function(myOrganism,otherOrganism){
-				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2),.5)
+				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dCoords[1][0],2)+Math.pow(otherOrganism.dCoords[1][1],2),.5)
 				//tells us how long it will take to reach the midpoint
 				if (tickCount == Infinity){
 					tickCount=0
 				}
 
 				return new Action('move',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px-otherOrganism.dx*tickCount,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py-otherOrganism.dy*tickCount,
+					(myOrganism.px+myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0])*2-otherOrganism.px-otherOrganism.dCoords[1][0]*tickCount,
+					(myOrganism.py+myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1])*2-otherOrganism.py-otherOrganism.dCoords[1][1]*tickCount,
 					myOrganism,
 					otherOrganism)
 			}
@@ -429,8 +427,8 @@ AiPrototype={
 			'#0000FF',
 			function(myOrganism,otherOrganism){
 				return new Action('move',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px-otherOrganism.dx-otherOrganism.dx2,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py-otherOrganism.dy-otherOrganism.dy2,
+					(myOrganism.px+myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0])*2-otherOrganism.px-otherOrganism.dCoords[1][0]-otherOrganism.dCoords[2][0],
+					(myOrganism.py+myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1])*2-otherOrganism.py-otherOrganism.dCoords[1][1]-otherOrganism.dCoords[2][1],
 					myOrganism,
 					otherOrganism)
 			}
@@ -447,8 +445,8 @@ AiPrototype={
 			'#0000FF',
 			function(myOrganism,otherOrganism){
 				return new Action('move',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py,
+					(myOrganism.px+myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0])*2-otherOrganism.px,
+					(myOrganism.py+myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1])*2-otherOrganism.py,
 					myOrganism,
 					otherOrganism)
 			}
@@ -456,8 +454,8 @@ AiPrototype={
 		new ActionGenerator(
 			"Split small blob",
 			function(myOrganism,otherOrganism,specialNames){
-				var dist=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)
-					ftrDist=Math.pow(Math.pow(myOrganism.px+myOrganism.dx-otherOrganism.px-otherOrganism.dx,2)+Math.pow(myOrganism.py+myOrganism.dy-otherOrganism.py-otherOrganism.dy,2),.5)
+				var dist=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5),
+					ftrDist=Math.pow(Math.pow(myOrganism.px+myOrganism.dCoords[1][0]-otherOrganism.px-otherOrganism.dCoords[1][0],2)+Math.pow(myOrganism.py+myOrganism.dCoords[1][1]-otherOrganism.py-otherOrganism.dCoords[1][1],2),.5)
 
 				return !otherOrganism.isVirus
 					&&otherOrganism.size>48
@@ -472,15 +470,15 @@ AiPrototype={
 			1,
 			'#FFFF00',
 			function(myOrganism,otherOrganism){
-				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2),.5)
+				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dCoords[1][0],2)+Math.pow(otherOrganism.dCoords[1][1],2),.5)
 				//tells us how long it will take to reach the midpoint
 				if (tickCount == Infinity){
 					tickCount=0
 				}
 
 				return new Action('split',
-					myOrganism.dx+myOrganism.dx2+otherOrganism.px+otherOrganism.dx*tickCount,
-					myOrganism.dy+myOrganism.dy2+otherOrganism.py+otherOrganism.dy*tickCount,
+					myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0]+otherOrganism.px+otherOrganism.dCoords[1][0]*tickCount,
+					myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1]+otherOrganism.py+otherOrganism.dCoords[1][1]*tickCount,
 					myOrganism,
 					otherOrganism)
 			}
@@ -499,8 +497,8 @@ AiPrototype={
 			'#0000FF',
 			function(myOrganism,otherOrganism){
 				return new Action('split',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px-otherOrganism.dx-otherOrganism.dx2,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py-otherOrganism.dy-otherOrganism.dy2,
+					(myOrganism.px+myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0])*2-otherOrganism.px-otherOrganism.dCoords[1][0]-otherOrganism.dCoords[2][0],
+					(myOrganism.py+myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1])*2-otherOrganism.py-otherOrganism.dCoords[1][1]-otherOrganism.dCoords[2][1],
 					myOrganism,
 					otherOrganism)
 			}
@@ -519,8 +517,8 @@ AiPrototype={
 			'#AA00CC',
 			function(myOrganism,otherOrganism){
 				return new Action('shoot',
-					(myOrganism.px+myOrganism.dx+myOrganism.dx2)*2-otherOrganism.px-otherOrganism.dx-otherOrganism.dx2,
-					(myOrganism.py+myOrganism.dy+myOrganism.dy2)*2-otherOrganism.py-otherOrganism.dy-otherOrganism.dy2,
+					(myOrganism.px+myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0])*2-otherOrganism.px-otherOrganism.dCoords[1][0]-otherOrganism.dCoords[2][0],
+					(myOrganism.py+myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1])*2-otherOrganism.py-otherOrganism.dCoords[1][1]-otherOrganism.dCoords[2][1],
 					myOrganism,
 					otherOrganism)
 			}
@@ -528,8 +526,8 @@ AiPrototype={
 		new ActionGenerator(
 			"Shoot to bait",
 			function(myOrganism,otherOrganism,specialNames){
-				var dist=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)
-					ftrDist=Math.pow(Math.pow(myOrganism.px+myOrganism.dx-otherOrganism.px-otherOrganism.dx,2)+Math.pow(myOrganism.py+myOrganism.dy-otherOrganism.py-otherOrganism.dy,2),.5)
+				var dist=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5),
+					ftrDist=Math.pow(Math.pow(myOrganism.px+myOrganism.dCoords[1][0]-otherOrganism.px-otherOrganism.dCoords[1][0],2)+Math.pow(myOrganism.py+myOrganism.dCoords[1][1]-otherOrganism.py-otherOrganism.dCoords[1][1],2),.5)
 
 				return !otherOrganism.isVirus
 					&&otherOrganism.size>48
@@ -545,15 +543,15 @@ AiPrototype={
 			1,
 			'#CC12FF',
 			function(myOrganism,otherOrganism){
-				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dx,2)+Math.pow(otherOrganism.dy,2),.5)
+				var tickCount=Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)/2/Math.pow(Math.pow(otherOrganism.dCoords[1][0],2)+Math.pow(otherOrganism.dCoords[1][1],2),.5)
 				//tells us how long it will take to reach the midpoint
 				if (tickCount == Infinity){
 					tickCount=0
 				}
 
 				return new Action('shoot',
-					myOrganism.dx+myOrganism.dx2+otherOrganism.px+otherOrganism.dx*tickCount,
-					myOrganism.dy+myOrganism.dy2+otherOrganism.py+otherOrganism.dy*tickCount,
+					myOrganism.dCoords[1][0]+myOrganism.dCoords[2][0]+otherOrganism.px+otherOrganism.dCoords[1][0]*tickCount,
+					myOrganism.dCoords[1][1]+myOrganism.dCoords[2][1]+otherOrganism.py+otherOrganism.dCoords[1][1]*tickCount,
 					myOrganism,
 					otherOrganism)
 			}
@@ -571,10 +569,10 @@ AiPrototype={
 	allowShoot:true,
 	shootCooldown:5000,
 	simulateAction:function(myOrganism,otherOrganisms,action){
-		var tickCount=(myOrganism.dx+myOrganism.dy>0)?(Math.pow(Math.pow(action.x-myOrganism.px,2)+Math.pow(action.y-myOrganism.py,2),.5)/Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5)):0,
+		var tickCount=(myOrganism.dCoords[1][0]+myOrganism.dCoords[1][1]>0)?(Math.pow(Math.pow(action.x-myOrganism.px,2)+Math.pow(action.y-myOrganism.py,2),.5)/Math.pow(Math.pow(myOrganism.dCoords[1][0],2)+Math.pow(myOrganism.dCoords[1][1],2),.5)):0,
 			clonedMyOrganism=new Organism
 		
-		Object.keys(Organism.prototype).forEach(function(key){clonedMyOrganism[key]=myOrganism[key]})
+		Object.keys(myOrganism).forEach(function(key){clonedMyOrganism[key]=myOrganism[key]})
 		clonedMyOrganism.px=action.x
 		clonedMyOrganism.py=action.y
 
@@ -584,77 +582,73 @@ AiPrototype={
 				.filter(function(a){return a.id!=action.otherOrganism.id})
 				.map(function(organism){
 					var clone=new Organism
-					Object.keys(Organism.prototype).forEach(function(key){clone[key]=organism[key]})
+					Object.keys(organism).forEach(function(key){clone[key]=organism[key]})
 					clone.id=organism.id
-					clone.px+=clone.dx*tickCount
-					clone.py+=clone.dy*tickCount
+					clone.px+=clone.dCoords[1][0]*tickCount
+					clone.py+=clone.dCoords[1][1]*tickCount
 					return clone
 				})
 		}
 	},
 	tick:function(organisms,myOrganisms,score){
 		var otherOrganisms=this.otherOrganisms=organisms.filter(function(organism){
-			/* velocity */
-			if(!organism.x2){
-				organism.x2=organism.nx
-				organism.y2=organism.ny
+			if(!organism.px && this.specialNames[organism.name]){
+				this.onFoundSpecialName(organism.name)
+			}
 
-				if(this.specialNames[organism.name]){
-					this.onFoundSpecialName(organism.name)
+			if(!organism.dCoords){
+				organism.dCoords=[[0,0],[0,0],[0,0]]
+				organism.pDCoords=[]
+			}
+
+			organism.dCoords[0]=[organism.nx,organism.ny]
+			organism.px=0
+			organism.py=0
+
+			organism.dCoords.every(function(coord,i){
+				if(!organism.pDCoords[i]){
+					organism.pDCoords[i]=[coord[0],coord[1]]
 				}
-			}
-
-			organism.dx=organism.nx-organism.x2
-			organism.dy=organism.ny-organism.y2
-
-			organism.x2=organism.nx
-			organism.y2=organism.ny
-
-			/* acceleration */
-			if(!organism.pdx){
-				organism.pdx=organism.dx
-				organism.pdy=organism.dy
-			}
-
-			organism.dx2=organism.dx-organism.pdx
-			organism.dy2=organism.dy-organism.pdy
-
-			organism.pdx=organism.dx
-			organism.pdy=organism.dy
-
-			/* jerk */
-			if(!organism.pdx2){
-				organism.pdx2=organism.dx2
-				organism.pdy2=organism.dy2
-			}
-
-			organism.dx3=organism.dx2-organism.pdx2
-			organism.dy3=organism.dy2-organism.pdy2
-			
-			organism.pdx2=organism.dx2
-			organism.pdy2=organism.dy2
-
-			/* predicted coordinates for the next tick */
-			organism.px=organism.nx+organism.dx+organism.dx2+organism.dx3
-			organism.py=organism.ny+organism.dy+organism.dy2+organism.dy3
-
+				organism.dCoords[i+1]=[coord[0]-organism.pDCoords[i][0],coord[1]-organism.pDCoords[i][1]]
+				organism.px+=organism.dCoords[i][0]
+				organism.py+=organism.dCoords[i][1]
+				organism.pDCoords[i]=[coord[0],coord[1]]
+				return i<this.predictionDepth&&(organism.dCoords[i+1][0]||organism.dCoords[i+1][1])
+			},this)
 			return myOrganisms.indexOf(organism)==-1
 		},this)
 
 		if (myOrganisms.length){
-			var myOrganism=new Organism(),
+			var mergedOrganism=new Organism(),
 				totalSize=myOrganisms
 					.map(function(myOrganism){return myOrganism.size})
 					.reduce(function(a,b){return a+b})
 
-			for(var key in Organism.prototype){
+
+			//TODO Calculate dCoords
+			Object.keys(Organism.prototype).forEach(function(key){
 				var totalValue=myOrganisms
 					.map(function(myOrganism){return myOrganism[key]*myOrganism.size})
 					.reduce(function(a,b){return a+b})
-				myOrganism[key]=totalValue/totalSize
-			}
+				mergedOrganism[key]=totalValue/totalSize
+			})
 
-			var action=this.findBestAction(myOrganism,otherOrganisms,this.depth)
+			myOrganisms.forEach(function(myOrganism){
+				myOrganism.dCoords.forEach(function(dCoord,i){
+					if(!mergedOrganism.dCoords[i]){
+						mergedOrganism.dCoords[i]=[0,0]
+					}
+					mergedOrganism.dCoords[i][0]+=dCoord[0]*myOrganism.size
+					mergedOrganism.dCoords[i][1]+=dCoord[1]*myOrganism.size
+				})
+			})
+			
+			mergedOrganism.dCoords.forEach(function(dCoord){
+				dCoord[0]/=totalSize
+				dCoord[1]/=totalSize
+			})
+
+			var action=this.findBestAction(mergedOrganism,otherOrganisms,this.depth)
 
 			if (action){
 				switch(action.type){
@@ -680,7 +674,7 @@ AiPrototype={
 				){
 					if(action.otherOrganism.isVirus){
 						console.info("avoiding virus", action.otherOrganism.name,[action])
-					}else if (action.otherOrganism.size>myOrganisms[0].size){
+					}else if (action.otherOrganism.size>mergedOrganism.size){
 						console.info("avoiding", action.otherOrganism.name,[action])
 					}else{
 						console.info("chasing", action.otherOrganism.name,[action])
@@ -730,7 +724,7 @@ AiPrototype={
 						this.considerations[i].weight=weights[i]
 					}
 				}
-
+//TODO Move heatmap to script.js
 				heatMapCtx.strokeStyle="#FF0000"
 				heatMapCtx.strokeRect((this.lastAction.x-this.lastAction.myOrganism.size)/64,(this.lastAction.y-this.lastAction.myOrganism.size)/64,this.lastAction.myOrganism.size*2/64,this.lastAction.myOrganism.size*2/64)
 				console.info("DEAD x_X")
@@ -786,41 +780,52 @@ AiPrototype={
 				organism=new Organism,
 				virus=new Organism,
 				srcActions=[]
-			for(var i=0;i<actions.length;i++){
-				var action=actions[i]
-				if(action.type=='move'
+
+			actions.filter(function(action){ //TODO Merged threat for virus or organism?
+				return action.type=='move'
 					&&action.otherOrganism.isVirus
 					&&myOrganism.size>action.otherOrganism.size
 					||!action.otherOrganism.isVirus
 					&&myOrganism.size<action.otherOrganism.size
-				){
-					srcActions.push(action)
-					totalImportance+=action.importance
-					for(key in Organism.prototype){
-						organism[key]+=action.otherOrganism[key]*action.importance
+			}).forEach(function(action){
+				srcActions.push(action)
+				totalImportance+=action.importance
+				Object.keys(Organism.prototype).forEach(function(key){
+					organism[key]+=action.otherOrganism[key]*action.importance
+				})
+				
+
+				action.otherOrganism.dCoords.forEach(function(dCoord,i){
+					if(!organism.dCoords[i]){
+						organism.dCoords[i]=[0,0]
 					}
-				}
-			}
+					organism.dCoords[i][0]+=dCoord[0]*action.importance
+					organism.dCoords[i][1]+=dCoord[1]*action.importance
+				})
+			})
 
-			for(key in Organism.prototype){
-				organism[key]/=totalImportance
-			}
+			if(totalImportance){
+				organism.dCoords.forEach(function(dCoord){
+					dCoord[0]/=totalImportance
+					dCoord[1]/=totalImportance
+				})
+				
+				Object.keys(Organism.prototype).forEach(function(key){
+					organism[key]/=totalImportance
+					virus[key]=organism[key]
+				})
+				
+				organism.name="Best route"
+				organism.isVirus=false
+				virus.name="Best anti-virus route" 
+				virus.isVirus=true
+				virus.dCoords=organism.dCoords
 
-			for(key in Organism.prototype){
-				virus[key]=organism[key]
+				actions=actions.concat(
+					this.genActions(myOrganism,organism).map(function(a){a.srcActions=srcActions; return a}),
+					this.genActions(myOrganism,virus).map(function(a){a.srcActions=srcActions; return a})
+				)
 			}
-			organism.name="Best route"
-			virus.name="Best anti-virus route" 
-			virus.isVirus=true
-			virus.dx=0
-			virus.dy=0
-			organism.dx=0
-			organism.dy=0
-
-			actions=actions.concat(
-				this.genActions(myOrganism,organism).map(function(a){a.srcActions=srcActions; return a}),
-				this.genActions(myOrganism,virus).map(function(a){a.srcActions=srcActions; return a})
-			)
 		}
 
 		if(depth){

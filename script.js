@@ -161,11 +161,15 @@ ai.onDraw=function(){
 			)
 	}
 	if(this.lastAction){
-		var myOrganism=this.lastAction.myOrganism
-		myOrganismStatsDiv.html(
-			'v='+Math.pow(Math.pow(myOrganism.dx,2)+Math.pow(myOrganism.dy,2),.5).toFixed(3)
-			+' a='+Math.pow(Math.pow(myOrganism.dx2,2)+Math.pow(myOrganism.dy2,2),.5).toFixed(3)
-			+' j='+Math.pow(Math.pow(myOrganism.dx3,2)+Math.pow(myOrganism.dy3,2),.5).toFixed(3)
-			)
+		var myOrganism=this.lastAction.myOrganism,
+			msg=''
+
+		if(myOrganism.dCoords){
+			myOrganism.dCoords.every(function(coord,i){
+				msg+='['+i+']'+Math.pow(Math.pow(coord[0],2)+Math.pow(coord[1],2),.5).toFixed(3)+' '
+				return i<this.predictionDepth
+			},this)
+		}
+		myOrganismStatsDiv.html(msg)
 	}
 }
