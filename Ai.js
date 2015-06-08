@@ -46,6 +46,7 @@ Organism.prototype={
 	y:0,
 	px:0,
 	py:0,
+	pv:0,
 	size:0,
 	isVirus:false
 }
@@ -156,7 +157,7 @@ Ai.prototype=Object.create(AiInterface.prototype)
 //score=size*size/100
 var AiPrototype={
 	splitCooldown:10000,
-	depth:4,
+	depth:3,
 	onDraw:function(){},
 	specialNames:{},
 	onTick:function(){},
@@ -198,7 +199,7 @@ var AiPrototype={
 			"Chase Nearest Smaller Blob",
 			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size&&action.type=='move'},
 			function(myOrganism,otherOrganism,action){
-				return -Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-myOrganism.size
+				return -Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-otherOrganism.pv+myOrganism.size+myOrganism.pv
 			},
 			1500,
 			'#46BFBD'
@@ -209,7 +210,7 @@ var AiPrototype={
 				return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size&&action.type=='move'
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
-				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.size
+				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.pv+otherOrganism.size
 			},
 			1,
 			'#46BF00'
@@ -220,7 +221,7 @@ var AiPrototype={
 				return action.type=='move'
 				&&!otherOrganism.isVirus
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+Ai.prototype.cushion},
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.pv+otherOrganism.size+Ai.prototype.cushion},
 			function(myOrganism,otherOrganism,action){
 				return true;
 			},
@@ -233,7 +234,7 @@ var AiPrototype={
 				return action.type=='move'
 					&&otherOrganism.isVirus
 					&&myOrganism.size>otherOrganism.size
-					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size+myOrganism.dCoords[1][0]+myOrganism.dCoords[1][1] //TODO Consider taking out pow(,.5)
+					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size //TODO Consider taking out pow(,.5)
 			},
 			function(myOrganism,otherOrganism,action){
 				return true
@@ -270,7 +271,7 @@ var AiPrototype={
 				return action.type=='move'&&otherOrganism.isVirus&&myOrganism.size>otherOrganism.size
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
-				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+myOrganism.size
+				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),2)+myOrganism.size
 			},
 			1,
 			'#46FF22'
@@ -326,7 +327,7 @@ var AiPrototype={
 				&&!otherOrganism.isVirus
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+~~(Ai.prototype/3)},
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype/3)},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
 			},
@@ -341,8 +342,8 @@ var AiPrototype={
 				return action.type=='shoot'
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size
-				&&dist>otherOrganism.size+~~(Ai.prototype/3)
-				&&dist<=otherOrganism.size+~~(Ai.prototype*2/3)
+				&&dist>otherOrganism.size+otherOrganism.pv+~~(Ai.prototype/3)
+				&&dist<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype*2/3)
 				},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
@@ -534,8 +535,8 @@ var AiPrototype={
 					&&otherOrganism.size*2.2<myOrganism.size
 					&&(!specialNames[otherOrganism.name]||specialNames[otherOrganism.name]=='ignore')
 					&&dist<ftrDist
-					&&dist<650-myOrganism.size
-					&&dist>550-myOrganism.size
+					&&dist<750-myOrganism.size
+					&&dist>650-myOrganism.size
 			},
 			function(myOrganism,otherOrganism){
 				return true
@@ -599,6 +600,8 @@ var AiPrototype={
 			if(!organism.dCoords){
 				organism.dCoords=[[0,0],[0,0],[0,0]]
 				organism.pDCoords=[]
+				organism.dvs=[]
+				organism.pdvs=[]
 			}
 
 			organism.dCoords[0]=[organism.nx,organism.ny]
@@ -610,11 +613,28 @@ var AiPrototype={
 					organism.pDCoords[i]=[coord[0],coord[1]]
 				}
 				organism.dCoords[i+1]=[coord[0]-organism.pDCoords[i][0],coord[1]-organism.pDCoords[i][1]]
+
 				organism.px+=organism.dCoords[i][0]
 				organism.py+=organism.dCoords[i][1]
 				organism.pDCoords[i]=[coord[0],coord[1]]
 				return i<this.predictionDepth&&(organism.dCoords[i+1][0]||organism.dCoords[i+1][1])
 			},this)
+			organism.dvs[0]=Math.pow(Math.pow(organism.dCoords[1][0],2)+Math.pow(organism.dCoords[1][1],2),.5)
+			organism.px=organism.nx
+			organism.py=organism.ny
+			organism.pv=organism.dvs[0]
+			/*
+			organism.dvs.every(function(dv,i){
+				if(!organism.pdvs[i]){
+					organism.pdvs[i]=dv
+				}
+				organism.dvs[i+1]=dv-organism.pdvs[i]
+				organism.pv+=organism.dvs[i]
+				organism.pdvs[i]=dv
+				return organism.dvs[i+1]
+			})
+			*/
+
 			return myOrganisms.indexOf(organism)==-1
 		},this)
 
@@ -862,41 +882,66 @@ var AiPrototype={
 		}
 
 		if(this.linesEnabled){
-			while(lastAction){
-					//for (var i=0;i<this.lastAction.myOrganisms.length;i++){ //TODO Only one myOrganism?
-					var myOrganism=lastAction.myOrganism
+			if(lastAction){
+				ctx.beginPath()
+				ctx.strokeStyle="#FFFFFF"
+				ctx.lineWidth=1
+				ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size+lastAction.myOrganism.pv,0,2*Math.PI)
+				ctx.stroke()
 
-					if(this.lastAction==lastAction&&(!lastAction.srcActions || !lastAction.srcActions.length)){
+				ctx.strokeStyle="#FF0000"
+				if(lastAction.srcActions){
+					ctx.strokeStyle='#FF0000'
+					ctx.lineWidth=1
+					for(var i=0;i<lastAction.srcActions.length;i++){
 						ctx.beginPath()
-						ctx.lineWidth=5
-						if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
-							ctx.strokeStyle='#FF0000'
-						}else{
-							ctx.strokeStyle='#00FF00'
-						}
-						ctx.moveTo(myOrganism.px,myOrganism.py)
-						ctx.lineTo(lastAction.otherOrganism.px,lastAction.otherOrganism.py)
+						ctx.arc(
+							lastAction.srcActions[i].otherOrganism.px,
+							lastAction.srcActions[i].otherOrganism.py,
+							lastAction.srcActions[i].otherOrganism.size+lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
 						ctx.stroke()
 					}
+				}
+			}
+			while(lastAction){
+				var myOrganism=lastAction.myOrganism
 
-					ctx.lineWidth=2
+				if(this.lastAction==lastAction&&(!lastAction.srcActions || !lastAction.srcActions.length)){
 					ctx.beginPath()
-					ctx.strokeStyle="#FFFFFF"
+					ctx.lineWidth=5
+					if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
+						ctx.strokeStyle='#FF0000'
+					}else{
+						ctx.strokeStyle='#00FF00'
+					}
 					ctx.moveTo(myOrganism.px,myOrganism.py)
-					ctx.lineTo(lastAction.x,lastAction.y)
+					ctx.lineTo(lastAction.otherOrganism.px,lastAction.otherOrganism.py)
 					ctx.stroke()
 
-					if(lastAction.srcActions){
-						ctx.lineWidth=2
-						ctx.strokeStyle='#FF0000'
-						for(var i=0;i<lastAction.srcActions.length;i++){
-							ctx.beginPath()
-							ctx.moveTo(myOrganism.x,myOrganism.y)
-							ctx.lineTo(lastAction.srcActions[i].otherOrganism.x,lastAction.srcActions[i].otherOrganism.y)
-							ctx.stroke()
-						}
+					ctx.beginPath()
+					ctx.lineWidth=1
+					ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size+lastAction.otherOrganism.pv,0,2*Math.PI)
+					ctx.stroke()
+				}
+
+				ctx.lineWidth=2
+				ctx.beginPath()
+				ctx.strokeStyle="#FFFFFF"
+				ctx.moveTo(myOrganism.px,myOrganism.py)
+				ctx.lineTo(lastAction.x,lastAction.y)
+				ctx.stroke()
+
+				if(this.lastAction==lastAction&&lastAction.srcActions){
+					ctx.lineWidth=2
+					ctx.strokeStyle='#FF0000'
+					for(var i=0;i<lastAction.srcActions.length;i++){
+						ctx.beginPath()
+						ctx.moveTo(myOrganism.px,myOrganism.py)
+						ctx.lineTo(lastAction.srcActions[i].otherOrganism.px,lastAction.srcActions[i].otherOrganism.py)
+						ctx.stroke()
+
 					}
-				//}
+				}
 				lastAction=lastAction.next
 			}
 		}
