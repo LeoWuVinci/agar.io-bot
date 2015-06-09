@@ -8,9 +8,10 @@
 	},
 	"content_scripts": [
 		{
-			"matches":["http://agar.io/*"],
+			"matches":["http://agar.io/"],
 			"css":["style.css"],
 			"js":[
+				"ext/md5.min.js",
 				"ext/jquery.js",
 				"ext/Chart.js",
 				"quadtree_3.js",
@@ -29,5 +30,5 @@
 	],
 	"web_accessible_resources":[
 		"*.wav"
-		]
+	]
 }

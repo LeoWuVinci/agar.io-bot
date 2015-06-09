@@ -402,9 +402,9 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
         Qa();
         la();
         ta || e.clearRect(0, 0, p, r);
-        if (ta) e.fillStyle = fa ? "#111111" : "#F2FBFF", e.globalAlpha = .05, e.fillRect(0, 0, p, r), e.globalAlpha = 1;
+        if (ta) e.fillStyle = fa ? "#222222" : "#F2FBFF", e.globalAlpha = .05, e.fillRect(0, 0, p, r), e.globalAlpha = 1;
         else {
-            e.fillStyle = fa ? "#111111" : "#F2FBFF";
+            e.fillStyle = fa ? "#222222" : "#F2FBFF";
             e.fillRect(0, 0, p, r);
             e.save();
             e.strokeStyle = fa ? "#AAAAAA" : "#000000";
@@ -412,8 +412,8 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             e.scale(h, h);
             b = p / h;
             a = r / h;
-            for (d = -.5 + (-s + b / 2) % 50; d < b; d += 50) e.beginPath(), e.moveTo(d, 0), e.lineTo(d, a), e.stroke();
-            for (d = -.5 + (-t + a / 2) % 50; d < a; d += 50) e.beginPath(), e.moveTo(0, d), e.lineTo(b, d), e.stroke();
+            //for (d = -.5 + (-s + b / 2) % 50; d < b; d += 50) e.beginPath(), e.moveTo(d, 0), e.lineTo(d, a), e.stroke();
+            //for (d = -.5 + (-t + a / 2) % 50; d < a; d += 50) e.beginPath(), e.moveTo(0, d), e.lineTo(b, d), e.stroke();
             e.restore()
         }
         n.sort(function(a, b) {
@@ -444,7 +444,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
         e.restore();
         v && v.width && e.drawImage(v, p - v.width - 10, 10);
         H = Math.max(H, Xa());
-        0 != H && (null == ga && (ga = new ha(24, "#FFFFFF")), ga.setValue("Score: " + ~~(H / 100)), a = ga.render(), b = a.width, e.globalAlpha = .2, e.fillStyle = "#000000", e.fillRect(10, r - 10 - 24 - 10, b + 10, 34), e.globalAlpha = 1, e.drawImage(a, 15, r - 10 - 24 - 5));
+        //0 != H && (null == ga && (ga = new ha(24, "#FFFFFF")), ga.setValue("Score: " + ~~(H / 100)), a = ga.render(), b = a.width, e.globalAlpha = .2, e.fillStyle = "#000000", e.globalAlpha = 1, e.drawImage(a, 15, r - 10 - 24 - 5));
         Ya();
         c = +new Date - c;
         c > 1E3 / 60 ? x -= .01 : c < 1E3 / 65 && (x += .01);.4 > x && (x = .4);
@@ -477,16 +477,16 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
                 a.scale(c, c);
                 a.globalAlpha = .4;
                 a.fillStyle = "#000000";
-                a.fillRect(0, 0, 200, b);
+                //a.fillRect(0, 0, 200, b);
                 a.globalAlpha = 1;
                 a.fillStyle = "#FFFFFF";
                 c = null;
                 c = "Leaderboard";
-                a.font = "30px Ubuntu";
+                a.font = "20px Ubuntu";
                 a.fillText(c, 100 - a.measureText(c).width /
                     2, 40);
                 if (null == w)
-                    for (a.font = "20px Ubuntu", b = 0; b < z.length; ++b) c = z[b].name || "An unnamed cell", ia || (c = "An unnamed cell"), -1 != E.indexOf(z[b].id) ? (l[0].name && (c = l[0].name), a.fillStyle = "#FFAAAA") : a.fillStyle = "#FFFFFF", c = b + 1 + ". " + c, a.fillText(c, 100 - a.measureText(c).width / 2, 70 + 24 * b);
+                    for (a.font = "15px Ubuntu", b = 0; b < z.length; ++b) c = z[b].name || "An unnamed cell", ia || (c = "An unnamed cell"), -1 != E.indexOf(z[b].id) ? (l[0].name && (c = l[0].name), a.fillStyle = "#FFAAAA") : a.fillStyle = "#FFFFFF", c = b + 1 + ". " + c, a.fillText(c, 100 - a.measureText(c).width / 2, 70 + 20 * b);
                 else
                     for (b = c = 0; b < w.length; ++b) angEnd = c + w[b] * Math.PI * 2, a.fillStyle = Za[b + 1], a.beginPath(), a.moveTo(100, 140), a.arc(100, 140, 80, c, angEnd, !1), a.fill(), c = angEnd
             }
@@ -1164,7 +1164,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
                 }
             };
             f.onload = Pa
-        }
+		}	
     }
 
 	var ai=window.ai=new Ai(
@@ -1178,44 +1178,12 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 	}
 	var onDeath=Aa
 	Aa=function(a){
-		onDeath(a)
-		window.setTimeout(function(){window.setNick(window.skinNames[~~(window.skinNames.length*Math.pow(Math.random(),2))])},5000)
+		//onDeath(a)
+		D=null
+		setTimeout(function(){setNick(skinNames[~~(skinNames.length*Math.pow(Math.random(),2))])},5000)
 	}
 
+	Ia=function(){
+		ai.updateLeaderboard(z,E)
+	}
 })(window, jQuery);
-
-window.skinNames=[
-	'twitch/gamerlio',
-	'nomday.com/lio',
-	'Yaranaika',
-	'Pokerface',
-	'Sir',
-	'Mars',
-	'Stalin',
-	'Moon',
-	'Wojak',
-	'Imperial Japan',
-	'Doge',
-	'Earth',
-	'Bait',
-	'Steam',
-	'Piccolo',
-	'Sanik',
-	'Cia',
-	'4chan',
-	'Ayy Lmao',
-	'Qing Dynasty',
-]
-
-$('#nick').parent().remove()
-$('#playBtn')
-	.after($('#playBtn').removeAttr('onclick').clone().click(function(e){
-		setNick(window.skinNames[~~(window.skinNames.length*Math.random())]);
-		return false;
-	})).remove()
-$('#gamemode').remove()
-$('#playBtn').next().remove()
-
-setDarkTheme(true)
-
-$('body').append('<div id="ip-address"></div>')

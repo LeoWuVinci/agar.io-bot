@@ -6,6 +6,24 @@
 	left: 10px;
 }
 
+#playBtn{
+	width: 100%;
+	height: auto;
+}
+
+#instructions,#nick, .btn-settings,#gamemode {
+	display:none !important;
+}
+
+a {
+	color: #0CE3AC !important;
+	padding-right:1em;
+}
+
+#helloDialog {
+	background-color:#303030 !important;
+}
+
 #intuition-panel {
 	background-color: rgba(0,0,0,.5);
 	width:375px;
@@ -19,14 +37,14 @@
 
 #edit-intuition-btn {
 	position:fixed;
-	bottom: 10px;
+	bottom: 5px;
 	left: 150px;
 }
 
 #teach-btn {
 	position:fixed;
-	bottom: 10px;
-	right: 200px;
+	bottom: 5px;
+	right: 190px;
 }
 
 
@@ -38,37 +56,39 @@
 #ai-intuition {
 	position:fixed;
 	width:100%;
-	bottom:5px;
+	bottom:0px;
 	text-align:center;
 }
 
 #ip-address {
 	position:fixed;
-	width:100%;
-	text-align:center;
-	color:#FFF;
 	top:0px;
-	font-size: 20px;
+	width: 100%;
+	text-align:center;
 }
 
-#heat-map-div, #mini-map {
+#heat-map, #mini-map {
+	border: 2px solid #999;
 	text-align: center;
 	position:fixed;
 	bottom:5px;
 	right:5px;
 }
 
-#heat-map {
-	border: 2px solid #FFFFFF;
-}
-
 h4 {
 	color: #EEE !important;
 }
 
-#last-action-best-5 {
+#last-action-div{
 	position: fixed;
 	bottom: 50px;
+}
+
+#last-action-death {
+	color: #F99;
+}
+
+#last-action-best-5 {
 	color: #FFF;
 }
 
@@ -78,4 +98,21 @@ h4 {
 	color: #FFF;
 	width: 100%;
 	text-align: center;
+}
+
+#ai-status span.alert {
+	color: rgb(231,76,60);
+}
+
+#leaderboard-div {
+	position: fixed;
+	top:0px;
+	right:5px;
+	text-align:right;
+}
+
+#score {
+	position: fixed;
+	left:10px;
+	bottom:5px
 }
