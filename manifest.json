@@ -14,6 +14,7 @@
 				"ext/md5.min.js",
 				"ext/jquery.js",
 				"ext/Chart.js",
+				"ext/bootstrap.min.js",
 				"quadtree_3.js",
 				"AiInterface.js",
 				"Ai.js",

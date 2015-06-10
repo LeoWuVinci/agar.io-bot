@@ -164,7 +164,7 @@ var AiPrototype={
 	onTick:function(){},
 	totalWeights:[],
 	totalMaxSize:0,
-	isTeachMode:0,
+	isTeachMode:true,
 	lastActionBest5:[],
 	predictionDepth:2,
 	cushion:200,
