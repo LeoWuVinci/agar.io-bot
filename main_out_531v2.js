@@ -1178,9 +1178,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 	}
 	var onDeath=Aa
 	Aa=function(a){
-		//onDeath(a)
 		D=null
-		setTimeout(function(){setNick(skinNames[~~(skinNames.length*Math.pow(Math.random(),2))])},5000)
 	}
 
 	Ia=function(){

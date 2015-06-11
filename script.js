@@ -23,9 +23,11 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 		'Qing Dynasty',
 	],
 	body=$('body'),
+	startGameDate,
 	playBtn=$('#playBtn').removeAttr('onclick').clone().click(function(e){
-		setNick(skinNames[~~(skinNames.length*Math.random())]);
 		clearInterval(intervalId)
+		startGameDate=Date.now()
+		setNick(skinNames[~~(skinNames.length*Math.random())]);
 		return false;
 	}),
 	secLeft=60,
@@ -33,8 +35,9 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 		if(--secLeft){
 			playBtn.text('PLAY in '+secLeft)
 		}else{
-			setNick(skinNames[~~(skinNames.length*Math.random())]);
 			clearInterval(intervalId)
+			startGameDate=Date.now()
+			setNick(skinNames[~~(skinNames.length*Math.random())]);
 		}
 	},1000),
 	scoreCanvas=$('<canvas id="score-chart" width="200" height="200"></canvas>').appendTo(body),
@@ -223,6 +226,23 @@ ai.onDraw=function(){
 }
 
 ai.onDeath=function(){
+	setTimeout(function(){
+		startGameDate=Date.now()
+		setNick(skinNames[~~(skinNames.length*Math.pow(Math.random(),2))])
+		},5000)
+	/*
+
+
+
+	   TODO lastaction.organism.size 
+	   distance
+	   my velocity
+	   enemy velocity
+	   ping
+	   avgPing
+	   */
+
+
 	renderStatus()
 	j=0
 	for(var i=this.gameHistory.length>10?this.gameHistory.length-10:0;i<this.gameHistory.length;i++){

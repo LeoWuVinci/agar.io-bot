@@ -37,7 +37,15 @@ Stat.prototype={
 	get maxSize(){
 		return Math.max.apply(null,this.sizes);
 	},
-	considerationWeights:[]
+	considerationWeights:[],
+	lastActionOtherOrganismSize:0,
+	lastActionOtherOrganismDist:0,
+	lastActionOtherOrganismPv:0,
+	lastActionMyOrganismPv:0,
+	lastActionMyOrganismSize:0,
+	cushion:0,
+	ping:0,
+	avgPing:0
 }
 
 function Organism(){this.dCoords=[]}
@@ -181,8 +189,10 @@ Ai.prototype=Object.create(AiInterface.prototype)
 //size = radius
 //score=size*size/100
 var AiPrototype={
+	cushions:[],
+	pings:[],
 	splitCooldown:10000,
-	depth:3,
+	depth:2,
 	onDraw:function(){},
 	specialNames:{},
 	onTick:function(){},
@@ -191,19 +201,28 @@ var AiPrototype={
 	isTeachMode:false,
 	lastActionBest5:[],
 	predictionDepth:1,
-	cushion:100,
+	cushion:0,
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
-			function(myOrganism,otherOrganism,action){return otherOrganism.isVirus&&action.type=='move'},
+			function(myOrganism,otherOrganism,action){
+				return otherOrganism.isVirus
+					&&action.type=='move'
+					&&otherOrganism.size<myOrganism.size*.85
+					&&Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)<660
+				},
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size
 			},
-			25
+			50
 		),
 		new Consideration(
 			"Avoid Blob w/ Slightly Larger Mass",
-			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size*.85&&action.type=='move'},
+			function(myOrganism,otherOrganism,action){
+				return !otherOrganism.isVirus
+					&&myOrganism.size<otherOrganism.size*.85
+					&&action.type=='move'
+			},
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			}
@@ -240,13 +259,13 @@ var AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return action.type=='move'
 					&&otherOrganism.isVirus
-					&&myOrganism.size>otherOrganism.size
+					&&myOrganism.size*.85>otherOrganism.size
 					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size
 			},
 			function(myOrganism,otherOrganism,action){
 				return true
 			},
-			25
+			50
 		),
 		new Consideration(
 			"Chase Smaller Blobs near Edge",
@@ -287,12 +306,14 @@ var AiPrototype={
 		new Consideration(
 			"Avoid Nearest Virus",
 			function(myOrganism,otherOrganism,action){
-				return action.type=='move'&&otherOrganism.isVirus&&myOrganism.size>otherOrganism.size
+				return action.type=='move'
+					&&otherOrganism.isVirus
+					&&myOrganism.size*.85>otherOrganism.size
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),2)+myOrganism.size
 			},
-			25
+			50
 		),
 		new Consideration(
 			"Chat Movements", //10 second delay lolz
@@ -600,7 +621,7 @@ var AiPrototype={
 				organism.dvs[0]=Math.pow(Math.pow(organism.dCoords[1][0],2)+Math.pow(organism.dCoords[1][1],2),.5)
 				organism.px=organism.nx
 				organism.py=organism.ny
-				organism.pv=organism.dvs[0]
+				organism.pv=organism.dvs[0]*this.avgPing/40
 				/*
 				organism.dvs.every(function(dv,i){
 					if(!organism.pdvs[i]){
@@ -671,17 +692,48 @@ var AiPrototype={
 
 			if (this.currentState!='alive'){
 				this.lastStateChangeDate=new Date
+				this.pings.push(Date.now()-startGameDate)
+				this.pings=this.pings.slice(this.pings.length-400,this.pings.length)
+				this.avgPing=this.pings.reduce(function(a,b,i){return a+b*i})/(this.pings.map(function(a,i){return i}).reduce(function(a,b){return a+b})+1)
 			}
 			this.scoreHistory.push(score)
 			this.currentState='alive'
 		}else{
 			if(this.currentState=='alive'){
-				this.gameHistory.push(new Stat(
+				var stat=new Stat(
 						this.lastStateChangeDate,
 						new Date,
 						this.scoreHistory,
-						this.considerations.map(function(consideration){return consideration.weight})))
+						this.considerations.map(function(consideration){return consideration.weight}))
 
+				if(this.lastAction){
+					var mOrganism=this.lastAction.myOrganism
+					var oOrganism=this.lastAction.otherOrganism
+					stat.lastActionOtherOrganismSize=this.lastAction.otherOrganism.size
+					stat.lastActionOtherOrganismDist=Math.pow(Math.pow(mOrganism.px-oOrganism.px,2)+Math.pow(mOrganism.py-oOrganism.py,2),.5)
+					stat.lastActionOtherOrganismPv=this.lastAction.otherOrganism.pv
+					stat.lastActionMyOrganismPv=this.lastAction.myOrganism.pv
+					stat.lastActionMyOrganismSize=this.lastAction.myOrganism.size
+					stat.cushion=this.cushion
+					stat.ping=this.pings[this.pings.length-1]
+					stat.avgPing=this.avgPing
+
+					if(
+						mOrganism.size<oOrganism.size*.85
+						&&oOrganism.size-oOrganism.pv+mOrganism.pv>stat.lastActionOtherOrganismDist	
+					){
+
+						var cushion=oOrganism.size-oOrganism.pv+mOrganism.pv-stat.lastActionOtherOrganismDist
+						this.cushions.push(cushion)
+						this.cushions=this.cushions.slice(this.cushions.length-400,this.cushions.length)
+						Ai.prototype.cushion=this.cushions.reduce(function(a,b,i){return a+b*i})
+							/(this.cushions
+								.map(function(a,i){return i})
+								.reduce(function(a,b){return a+b})+1)
+					}
+				}
+
+				this.gameHistory.push(stat)
 
 				var slicedGameHistory=this.gameHistory.slice(this.gameHistory.length-400,this.gameHistory.length)
 				chrome.storage.local.set({gameHistory:slicedGameHistory}) //TODO Learning is capped at 400 due to chrome's freezing when trying to save more than that
@@ -745,9 +797,7 @@ var AiPrototype={
 					}
 				}
 
-				if(this.direction){
-					action.direction=this.direction
-				}
+				action.direction=this.direction
 	
 				if(
 					action.type=='move'
@@ -876,7 +926,7 @@ var AiPrototype={
 							lastAction.srcActions[i].otherOrganism.size-lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
 							ctx.stroke()
 						}else{
-							console.log(lastAction.srcActions[i].otherOrganism)
+							//console.log(lastAction.srcActions[i].otherOrganism)
 						}
 						ctx.beginPath()
 						ctx.arc(
@@ -906,7 +956,7 @@ var AiPrototype={
 						ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size-lastAction.otherOrganism.pv,0,2*Math.PI)
 						ctx.stroke()
 					}else{
-						console.log(lastAction.otherOrganism)
+						//console.log(lastAction.otherOrganism)
 					}	
 					ctx.beginPath()
 					ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size+lastAction.otherOrganism.pv,0,2*Math.PI)
@@ -932,7 +982,7 @@ var AiPrototype={
 					ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size-lastAction.myOrganism.pv,0,2*Math.PI)
 					ctx.stroke()
 				}else{
-					console.log(lastAction.myOrganism)
+					//console.log(lastAction.myOrganism)
 				}
 
 				if(lastAction.ox){
