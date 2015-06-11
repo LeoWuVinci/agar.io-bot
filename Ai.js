@@ -360,7 +360,7 @@ var AiPrototype={
 				&&!otherOrganism.isVirus
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size*.85
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype/3)},
+				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype.cushion/3)},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
 			}
@@ -373,8 +373,8 @@ var AiPrototype={
 				return action.type=='shoot'
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size*.85
-				&&dist>otherOrganism.size+otherOrganism.pv+~~(Ai.prototype/3)
-				&&dist<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype*2/3)
+				&&dist>otherOrganism.size+otherOrganism.pv+~~(Ai.prototype.cushion/3)
+				&&dist<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype.cushion*2/3)
 				},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
