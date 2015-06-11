@@ -82,13 +82,16 @@ Action.prototype={
 	}
 }
 
-function Consideration(label,filter,calc){
+function Consideration(label,filter,calc,delay){
 	this.filter=filter;
 	this.label=label;
 	this.calc=calc;
+	this.delay=delay;
+	this.weightedCalcCache={}
 }
 
 Consideration.prototype={
+	delay:1,
 	weight:1,
 	label:'',
 	//color:'', //TODO MD5 the label to generate a unique color
@@ -99,14 +102,35 @@ Consideration.prototype={
 	min:0,
 	max:0,
 	weightedCalc:function(myOrganism,otherOrganism,action){
-		var value=this.calc(myOrganism,otherOrganism,action)
-		this.min=value<this.min?value:this.min
-		this.max=value>this.max?value:this.max
-		return (value-this.min)/(this.max-this.min)*this.weight
+		if(action&&ai.scoreHistory.length%this.delay&&this.weightedCalcCache[otherOrganism.id+action.type]){
+			return this.weightedCalcCache[otherOrganism.id+action.type]
+		}else{
+			if(Math.random()>.9){
+				this.weightedCalcCache={}
+			}
+			var value=this.calc(myOrganism,otherOrganism,action)
+			this.min=value<this.min?value:this.min
+			this.max=value>this.max?value:this.max
+			var weightedValue=(value-this.min)/(this.max-this.min)*this.weight
+			if(action){
+				this.weightedCalcCache[otherOrganism.id+action.type]=weightedValue
+			}
+			return weightedValue
+		}
 	},
 	get color(){
 		return '#'+md5(this.label).substr(0,6)
-	}	
+	},
+	draw:function(ctx,myOrganism,otherOrganism){
+		ctx.beginPath()
+		ctx.arc(
+			otherOrganism.px,
+			otherOrganism.py,
+			Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5),
+			0,
+			2*Math.PI)
+		ctx.stroke()
+	}
 }
 
 function ActionGenerator(label,filter,calcPriority,genAction){
@@ -158,63 +182,57 @@ Ai.prototype=Object.create(AiInterface.prototype)
 //score=size*size/100
 var AiPrototype={
 	splitCooldown:10000,
-	depth:2,
+	depth:3,
 	onDraw:function(){},
 	specialNames:{},
 	onTick:function(){},
 	totalWeights:[],
 	totalMaxSize:0,
-	isTeachMode:true,
+	isTeachMode:false,
 	lastActionBest5:[],
-	predictionDepth:2,
-	cushion:200,
+	predictionDepth:1,
+	cushion:100,
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
 			function(myOrganism,otherOrganism,action){return otherOrganism.isVirus&&action.type=='move'},
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Avoid Blob w/ Slightly Larger Mass",
-			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size&&action.type=='move'},
+			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size*.85&&action.type=='move'},
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			}
 		),
 		new Consideration(
 			"Chase Blob w/ Slightly Smaller Mass",
-			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size&&action.type=='move'},
+			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size*.85>otherOrganism.size&&action.type=='move'},
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Chase Nearest Smaller Blob",
-			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size>otherOrganism.size&&action.type=='move'},
+			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size*.85>otherOrganism.size&&action.type=='move'},
 			function(myOrganism,otherOrganism,action){
 				return -Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)-otherOrganism.pv+myOrganism.size+myOrganism.pv
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Avoid Nearest Larger Blob",
 			function(myOrganism,otherOrganism,action){
-				return !otherOrganism.isVirus&&myOrganism.size<otherOrganism.size&&action.type=='move'
+				return !otherOrganism.isVirus
+				&&myOrganism.size<otherOrganism.size*.85
+				&&action.type=='move'
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),.5)+otherOrganism.pv+otherOrganism.size
-			}
-		),
-		new Consideration(
-			"Avoid Colliding into Larger Blob",
-			function(myOrganism,otherOrganism,action){
-				return action.type=='move'
-				&&!otherOrganism.isVirus
-				&&myOrganism.size<otherOrganism.size
-				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.pv+otherOrganism.size+Ai.prototype.cushion},
-			function(myOrganism,otherOrganism,action){
-				return true;
 			}
 		),
 		new Consideration(
@@ -223,26 +241,44 @@ var AiPrototype={
 				return action.type=='move'
 					&&otherOrganism.isVirus
 					&&myOrganism.size>otherOrganism.size
-					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size //TODO Consider taking out pow(,.5)
+					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=myOrganism.size
 			},
 			function(myOrganism,otherOrganism,action){
 				return true
-			}
+			},
+			25
 		),
 		new Consideration(
-			"Chase towards Middle of Map",
-			function(myOrganism,otherOrganism,action){return myOrganism.size>otherOrganism.size&&!otherOrganism.isVirus&&action.type!='split'},
+			"Chase Smaller Blobs near Edge",
 			function(myOrganism,otherOrganism,action){
-				return -Math.pow(5600-action.x,2)-Math.pow(5600-action.y,2)
+				return myOrganism.size*.85>otherOrganism.size
+					&&!otherOrganism.isVirus
+					&&action.type=='move'
+			},
+			function(myOrganism,otherOrganism,action){
+				return Math.pow(5600-otherOrganism.px,2)+Math.pow(5600-otherOrganism.py,2)
+			},
+			25
+		),
+		new Consideration(
+			"Avoid Bigger Blobs near Edge",
+			function(myOrganism,otherOrganism,action){
+				return myOrganism.size<otherOrganism.size*.85
+					&&!otherOrganism.isVirus
+					&&action.type=='move'
+			},
+			function(myOrganism,otherOrganism,action){
+				return Math.pow(5600-otherOrganism.px,2)+Math.pow(5600-otherOrganism.py,2)
 			}
 		),
+		
 		new Consideration(
 			"Avoid Splitters",
 			function(myOrganism,otherOrganism,action){
 				return action.type=='move'
 					&&!otherOrganism.isVirus
 					&& otherOrganism.size>63
-					&& myOrganism.size*2<otherOrganism.size
+					&& myOrganism.size<otherOrganism.size*.425
 				},
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size
@@ -255,7 +291,8 @@ var AiPrototype={
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.px-myOrganism.px,2)+Math.pow(otherOrganism.py-myOrganism.py,2),2)+myOrganism.size
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Chat Movements", //10 second delay lolz
@@ -301,7 +338,7 @@ var AiPrototype={
 				return action.type=='split'
 				&&!otherOrganism.isVirus
 				&&otherOrganism.name!="Best route"
-				&&myOrganism.size<otherOrganism.size
+				&&myOrganism.size<otherOrganism.size*.85
 				&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype/3)},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
@@ -314,7 +351,7 @@ var AiPrototype={
 
 				return action.type=='shoot'
 				&&otherOrganism.name!="Best route"
-				&&myOrganism.size<otherOrganism.size
+				&&myOrganism.size<otherOrganism.size*.85
 				&&dist>otherOrganism.size+otherOrganism.pv+~~(Ai.prototype/3)
 				&&dist<=otherOrganism.size+otherOrganism.pv+~~(Ai.prototype*2/3)
 				},
@@ -326,7 +363,7 @@ var AiPrototype={
 			"Shoot to bait",
 			function(myOrganism,otherOrganism,action){
 				return action.type=='shoot'
-					&&myOrganism.size>otherOrganism.size
+					&&myOrganism.size*.85>otherOrganism.size
 			},
 			function(){
 				return true
@@ -359,7 +396,7 @@ var AiPrototype={
 		new ActionGenerator(
 			"Juke big blob",
 			function(myOrganism,otherOrganism){
-				return !otherOrganism.isVirus&&otherOrganism.size>myOrganism.size&&otherOrganism.pv
+				return !otherOrganism.isVirus&&otherOrganism.size*.85>myOrganism.size&&otherOrganism.pv
 			},
 			function(myOrganism,otherOrganism){
 				return Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2)
@@ -378,7 +415,7 @@ var AiPrototype={
 		new ActionGenerator(
 			"B line away from big blob",
 			function(myOrganism,otherOrganism){
-				return !otherOrganism.isVirus&&otherOrganism.size>myOrganism.size
+				return !otherOrganism.isVirus&&otherOrganism.size*.85>myOrganism.size
 			},
 			function(myOrganism,otherOrganism){
 				return -Math.pow(myOrganism.px-otherOrganism.px,2)-Math.pow(myOrganism.py-otherOrganism.py,2)
@@ -440,7 +477,7 @@ var AiPrototype={
 			function(myOrganism,otherOrganism){
 				return !otherOrganism.isVirus
 					&&myOrganism.size>64
-					&&otherOrganism.size>myOrganism.size
+					&&otherOrganism.size*.85>myOrganism.size
 			},
 			function(myOrganism,otherOrganism){
 				return true
@@ -458,7 +495,7 @@ var AiPrototype={
 			function(myOrganism,otherOrganism){
 				return !otherOrganism.isVirus
 					&&myOrganism.size>64
-					&&otherOrganism.size>myOrganism.size
+					&&otherOrganism.size*.85>myOrganism.size
 			},
 			function(myOrganism,otherOrganism){
 				return true
@@ -682,28 +719,47 @@ var AiPrototype={
 			.filter(function(actionGenerator){return actionGenerator.filter(myOrganism,otherOrganism,this.specialNames)},this)
 			.map(function(actionGenerator){
 				var action=actionGenerator.genAction(myOrganism,otherOrganism)
+				
+				if(myOrganism.size<otherOrganism.size*.85){
+					var	weightA=5600, 
+						weightB=Math.pow(Math.pow(action.x-myOrganism.px,2)+Math.pow(action.y-myOrganism.py,2),.5)
+							//min=0 max=5600
+					action.ox=action.x
+					action.oy=action.y
+					action.x=(action.x*weightA+5600*weightB)/(weightA+weightB)
+					action.y=(action.y*weightA+5600*weightB)/(weightA+weightB)
 
-				//TODO Curve wall?
-				if (action.x+myOrganism.size>11200){
-					action.x=11200-myOrganism.size;
-					action.y+=action.y-myOrganism.y
-				}else if(action.x-myOrganism.size<0){
-					action.x=myOrganism.size;
-					action.y+=action.y-myOrganism.y
-				}
-				if (action.y+myOrganism.size>11200){
-					action.y=11200-myOrganism.size;
-					action.x+=action.x-myOrganism.x
-				}else if(action.y-myOrganism.size<0){
-					action.y=myOrganism.size;
-					action.x+=action.x-myOrganism.x
+					if (action.x+myOrganism.size>11200){
+						action.x=11200-myOrganism.size;
+						action.y+=action.y-myOrganism.y
+					}else if(action.x-myOrganism.size<0){
+						action.x=myOrganism.size;
+						action.y+=action.y-myOrganism.y
+					}
+					if (action.y+myOrganism.size>11200){
+						action.y=11200-myOrganism.size;
+						action.x+=action.x-myOrganism.x
+					}else if(action.y-myOrganism.size<0){
+						action.y=myOrganism.size;
+						action.x+=action.x-myOrganism.x
+					}
 				}
 
 				if(this.direction){
 					action.direction=this.direction
 				}
-
-				action.importance=actionGenerator.weightedCalc(myOrganism,otherOrganism)*action.calcImportance(this.considerations)
+	
+				if(
+					action.type=='move'
+					&&!otherOrganism.isVirus
+					&&myOrganism.size<otherOrganism.size
+					&&Math.pow(Math.pow(myOrganism.px-otherOrganism.px,2)+Math.pow(myOrganism.py-otherOrganism.py,2),.5)<=otherOrganism.pv+otherOrganism.size+Ai.prototype.cushion
+				){
+					action.importance=1	
+				}else{
+					action.importance=actionGenerator.weightedCalc(myOrganism,otherOrganism)*action.calcImportance(this.considerations)
+				}
+			
 				return action
 			},this)
 			.filter(function(a){return (a.type!='split'||this.allowSplit)&&(a.type!='shoot'||this.allowShoot)},this)
@@ -812,13 +868,16 @@ var AiPrototype={
 				if(lastAction.srcActions){
 					ctx.strokeStyle='rgb(231,76,60)'
 					for(var i=0;i<lastAction.srcActions.length;i++){
-						ctx.beginPath()
-						ctx.arc(
-						lastAction.srcActions[i].otherOrganism.px,
-						lastAction.srcActions[i].otherOrganism.py,
-						lastAction.srcActions[i].otherOrganism.size,0,2*Math.PI)
-						ctx.stroke()
-
+						if (lastAction.srcActions[i].otherOrganism.pv<lastAction.srcActions[i].otherOrganism.size){
+							ctx.beginPath()
+							ctx.arc(
+							lastAction.srcActions[i].otherOrganism.px,
+							lastAction.srcActions[i].otherOrganism.py,
+							lastAction.srcActions[i].otherOrganism.size-lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
+							ctx.stroke()
+						}else{
+							console.log(lastAction.srcActions[i].otherOrganism)
+						}
 						ctx.beginPath()
 						ctx.arc(
 						lastAction.srcActions[i].otherOrganism.px,
@@ -842,23 +901,50 @@ var AiPrototype={
 					ctx.lineTo(lastAction.otherOrganism.px,lastAction.otherOrganism.py)
 					ctx.stroke()
 
-					ctx.beginPath()
-					ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size,0,2*Math.PI)
-					ctx.stroke()
-	
+					if (lastAction.otherOrganism.size>lastAction.otherOrganism.pv){
+						ctx.beginPath()
+						ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size-lastAction.otherOrganism.pv,0,2*Math.PI)
+						ctx.stroke()
+					}else{
+						console.log(lastAction.otherOrganism)
+					}	
 					ctx.beginPath()
 					ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size+lastAction.otherOrganism.pv,0,2*Math.PI)
 					ctx.stroke()
+
+				}
+			
+				ctx.lineWidth=2	
+				if(lastAction.weightedValues[0]){
+					var consideration=lastAction.weightedValues[0][1]
+					ctx.strokeStyle=consideration.color
+					consideration.draw(ctx,lastAction.myOrganism,lastAction.otherOrganism)
 				}
 
 				ctx.strokeStyle='rgb(255,255,255)'
 				ctx.lineWidth=3
 				ctx.beginPath()
+				
 				ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size+lastAction.myOrganism.pv,0,2*Math.PI)
 				ctx.stroke()
-				ctx.beginPath()
-				ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size,0,2*Math.PI)
-				ctx.stroke()
+				if(lastAction.myOrganism.size>lastAction.myOrganism.pv){
+					ctx.beginPath()
+					ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size-lastAction.myOrganism.pv,0,2*Math.PI)
+					ctx.stroke()
+				}else{
+					console.log(lastAction.myOrganism)
+				}
+
+				if(lastAction.ox){
+					ctx.beginPath()
+					ctx.setLineDash([5])
+					ctx.strokeStyle='rgb(180,180,180)'
+					ctx.moveTo(myOrganism.px,myOrganism.py)
+					ctx.lineTo(lastAction.ox,lastAction.oy)
+					ctx.stroke()
+					ctx.strokeStyle='rgb(255,255,255)'
+					ctx.setLineDash([0])
+				}
 
 				while(lastAction){
 					myOrganism=lastAction.myOrganism

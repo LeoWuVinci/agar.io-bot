@@ -1,4 +1,4 @@
-var chatLibId='',
+var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 	skinNames=[
 		'twitch/gamerlio',
 		'nomday.com/lio',
@@ -127,9 +127,6 @@ chrome.runtime.onMessage.addListener(function(m,s,res){
 		case 'setAi':
 			ai[m[1]]=m[2]
 			break;
-		case 'loadChatId':
-			chatLibId=m[1]
-			break;
 	}
 })
 
@@ -177,7 +174,7 @@ function renderStatus(){
 						$(intuitionPanel).modal()	
 					}))
 	}else if(ai.gameHistory.length<100){
-		aiStatusH4.html('<span class="alert">EXPERIMENTING FOR '+(100-this.gameHistory.length)+' LIVES</span>')
+		aiStatusH4.html('<span class="alert">EXPERIMENTING FOR '+(100-ai.gameHistory.length)+' LIVES</span>')
 	}else if(ai.gameHistory.length%2){
 		aiStatusH4.html('<span class="alert">EXPERIMENTING</span>')
 	}else{
