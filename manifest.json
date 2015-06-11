@@ -2,7 +2,6 @@
 	"manifest_version":2,
 	"name":"Lio's Agar.io AI Framework",
 	"version":"1",
-	"page_action":{},
 	"background":{
 		"scripts":["eventPage.js"]
 	},
@@ -14,6 +13,7 @@
 				"ext/md5.min.js",
 				"ext/jquery.js",
 				"ext/Chart.js",
+				"ext/bootstrap.min.js",
 				"quadtree_3.js",
 				"AiInterface.js",
 				"Ai.js",
@@ -27,8 +27,5 @@
 		"http://m.agar.io/*",
 		"storage",
 		"unlimitedStorage"
-	],
-	"web_accessible_resources":[
-		"*.wav"
 	]
 }

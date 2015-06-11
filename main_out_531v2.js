@@ -402,9 +402,9 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
         Qa();
         la();
         ta || e.clearRect(0, 0, p, r);
-        if (ta) e.fillStyle = fa ? "#222222" : "#F2FBFF", e.globalAlpha = .05, e.fillRect(0, 0, p, r), e.globalAlpha = 1;
+        if (ta) e.fillStyle = fa ? "#000000" : "#F2FBFF", e.globalAlpha = .05, e.fillRect(0, 0, p, r), e.globalAlpha = 1;
         else {
-            e.fillStyle = fa ? "#222222" : "#F2FBFF";
+            e.fillStyle = fa ? "#000000" : "#F2FBFF";
             e.fillRect(0, 0, p, r);
             e.save();
             e.strokeStyle = fa ? "#AAAAAA" : "#000000";

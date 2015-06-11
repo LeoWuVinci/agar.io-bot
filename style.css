@@ -1,11 +1,3 @@
-#intuition-div {
-	display: none;
-	z-index: 30;
-	position: fixed;
-	bottom: 40px;
-	left: 10px;
-}
-
 #playBtn{
 	width: 100%;
 	height: auto;
@@ -24,29 +16,11 @@ a {
 	background-color:#303030 !important;
 }
 
-#intuition-panel {
-	background-color: rgba(0,0,0,.5);
-	width:375px;
-	height:375px;
-	overflow-y: scroll;	  
-}
-
-#intuition-panel label {
-	color: #FFF;
-}
-
-#edit-intuition-btn {
-	position:fixed;
-	bottom: 5px;
-	left: 150px;
-}
-
-#teach-btn {
+#intuition-btn {
 	position:fixed;
 	bottom: 5px;
 	right: 190px;
 }
-
 
 #score-chart {
 	position:fixed;
@@ -79,25 +53,9 @@ h4 {
 	color: #EEE !important;
 }
 
-#last-action-div{
-	position: fixed;
-	bottom: 50px;
-}
-
-#last-action-death {
-	color: #F99;
-}
-
 #last-action-best-5 {
-	color: #FFF;
-}
-
-#my-organism-stats {
 	position: fixed;
-	bottom:200px;
-	color: #FFF;
-	width: 100%;
-	text-align: center;
+	bottom: 130px;
 }
 
 #ai-status span.alert {
@@ -115,4 +73,9 @@ h4 {
 	position: fixed;
 	left:10px;
 	bottom:5px
+}
+
+input, .consideration-label {
+	color: #FFF !important;
+	text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
 }
