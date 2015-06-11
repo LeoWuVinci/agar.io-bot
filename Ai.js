@@ -477,7 +477,7 @@ var AiPrototype={
 					&&otherOrganism.size<myOrganism.size*.425
 					&&(!specialNames[otherOrganism.name]||specialNames[otherOrganism.name]=='ignore')
 					&&dist<ftrDist
-					&&dist<550-myOrganism.size
+					&&dist<600-myOrganism.size
 			},
 			function(myOrganism,otherOrganism){
 				return true

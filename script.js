@@ -73,7 +73,8 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 				+'</div>'
 			+'</div>'
 		+'</div>').appendTo(body),
-	intuitionForm=$('<form id="intuition-form" class="form-horizontal"></form>').appendTo('#intuition-body')
+	intuitionForm=$('<form id="intuition-form" class="form-horizontal"></form>').appendTo('#intuition-body'),
+	pingH4=$('<h4 id="ping"></h4>').appendTo(body)
 
 $('#playBtn').after(playBtn).remove()
 
@@ -230,18 +231,8 @@ ai.onDeath=function(){
 		startGameDate=Date.now()
 		setNick(skinNames[~~(skinNames.length*Math.pow(Math.random(),2))])
 		},5000)
-	/*
 
-
-
-	   TODO lastaction.organism.size 
-	   distance
-	   my velocity
-	   enemy velocity
-	   ping
-	   avgPing
-	   */
-
+	pingH4.html(~~this.avgPing+"ms latency")
 
 	renderStatus()
 	j=0

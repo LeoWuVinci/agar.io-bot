@@ -71,11 +71,17 @@ h4 {
 
 #score {
 	position: fixed;
-	left:10px;
-	bottom:5px
+	left:5px;
+	bottom:0px
 }
 
 input, .consideration-label {
 	color: #FFF !important;
 	text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+#ping{
+	position: fixed;
+	left: 5px;
+	top: 0px;
 }
