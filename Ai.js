@@ -569,6 +569,9 @@ var AiPrototype={
 	allowShoot:true,
 	shootCooldown:5000,
 	onDeath:function(){},
+	myRing:['rgb(220,220,255)',4,'rgba(53,255,255,.3)',25],
+	badRing:['rgb(255,220,220)',4, 'rgba(231,76,60,.3)',25],
+	goodRing:['rgb(220,255,220)',4, 'rgba(12,227,172,.3)',25],
 	simulateAction:function(myOrganism,otherOrganisms,action){
 		var tickCount=myOrganism.pv?Math.pow(Math.pow(action.x-myOrganism.px,2)+Math.pow(action.y-myOrganism.py,2),.5)/myOrganism.pv:0,
 			clonedMyOrganism=new Organism
@@ -890,6 +893,7 @@ var AiPrototype={
 		return actions[0]
 	},
 	draw:function(ctx){
+		ctx.lineCap='round'
 		var lastAction=this.lastAction
 		miniMapCtx.clearRect(0,0,175,175)
 
@@ -910,97 +914,104 @@ var AiPrototype={
 
 		if(this.linesEnabled){
 			var myOrganism
-			if(lastAction){
-				ctx.lineWidth=4
-				myOrganism=lastAction.myOrganism
-				if(lastAction.srcActions){
-					ctx.strokeStyle='rgb(231,76,60)'
-					for(var i=0;i<lastAction.srcActions.length;i++){
-						if (lastAction.srcActions[i].otherOrganism.pv<lastAction.srcActions[i].otherOrganism.size){
+			for(var j=2;j>=0;j-=2){
+				lastAction=this.lastAction
+				if(lastAction){
+					ctx.lineWidth=this.badRing[j+1]
+					myOrganism=lastAction.myOrganism
+					if(lastAction.srcActions){
+						ctx.strokeStyle=this.badRing[j+0]
+						for(var i=0;i<lastAction.srcActions.length;i++){
+							ctx.lineWidth/=2
+							if (lastAction.srcActions[i].otherOrganism.pv<lastAction.srcActions[i].otherOrganism.size){
+								ctx.beginPath()
+								ctx.arc(
+								lastAction.srcActions[i].otherOrganism.px,
+								lastAction.srcActions[i].otherOrganism.py,
+								lastAction.srcActions[i].otherOrganism.size-lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
+								ctx.stroke()
+							}
+	
+							ctx.beginPath()
+							ctx.moveTo(myOrganism.px,myOrganism.py)
+							ctx.lineTo(lastAction.srcActions[i].otherOrganism.px,lastAction.srcActions[i].otherOrganism.py)
+							ctx.stroke()
+							ctx.lineWidth*=2
+
 							ctx.beginPath()
 							ctx.arc(
 							lastAction.srcActions[i].otherOrganism.px,
 							lastAction.srcActions[i].otherOrganism.py,
-							lastAction.srcActions[i].otherOrganism.size-lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
+							lastAction.srcActions[i].otherOrganism.size+lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
 							ctx.stroke()
-						}else{
-							//console.log(lastAction.srcActions[i].otherOrganism)
-						}
-						ctx.beginPath()
-						ctx.arc(
-						lastAction.srcActions[i].otherOrganism.px,
-						lastAction.srcActions[i].otherOrganism.py,
-						lastAction.srcActions[i].otherOrganism.size+lastAction.srcActions[i].otherOrganism.pv,0,2*Math.PI)
-						ctx.stroke()
 
+						}
+					}else{
+						ctx.beginPath()
+						if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
+							ctx.strokeStyle=this.badRing[j+0]
+						//}else{
+						//	ctx.strokeStyle=this.goodRing[j+0]
+						//}
+							ctx.lineWidth/=2
+							ctx.moveTo(myOrganism.px,myOrganism.py)
+							ctx.lineTo(lastAction.otherOrganism.px,lastAction.otherOrganism.py)
+							ctx.stroke()
+
+							if (lastAction.otherOrganism.size>lastAction.otherOrganism.pv){
+								ctx.beginPath()
+								ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size-lastAction.otherOrganism.pv,0,2*Math.PI)
+								ctx.stroke()
+							}	
+							ctx.lineWidth*=2
+							
+							ctx.beginPath()
+							ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size+lastAction.otherOrganism.pv,0,2*Math.PI)
+							ctx.stroke()
+						}
+					}
+				
+					ctx.lineWidth=2	
+					if(lastAction.weightedValues[0]){
+						var consideration=lastAction.weightedValues[0][1]
+						ctx.strokeStyle=consideration.color
+						consideration.draw(ctx,lastAction.myOrganism,lastAction.otherOrganism)
+					}
+
+					ctx.strokeStyle=this.myRing[j+0]
+					ctx.lineWidth=this.myRing[j+1]
+					ctx.beginPath()
+					ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size+lastAction.myOrganism.pv,0,2*Math.PI)
+					ctx.stroke()
+
+					ctx.lineWidth/=2
+					if(lastAction.myOrganism.size>lastAction.myOrganism.pv){
+						ctx.beginPath()
+						ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size-lastAction.myOrganism.pv,0,2*Math.PI)
+						ctx.stroke()
+					}
+
+					if(false&&lastAction.ox){
+						ctx.beginPath()
+						ctx.setLineDash([5])
+						ctx.strokeStyle='rgb(180,180,180)'
+						ctx.moveTo(myOrganism.px,myOrganism.py)
+						ctx.lineTo(lastAction.ox,lastAction.oy)
+						ctx.stroke()
+						ctx.strokeStyle=this.myRing[j+0]
+						ctx.setLineDash([0])
+					}
+
+					ctx.strokeStyle=this.goodRing[j+0]
+					while(lastAction){
+						myOrganism=lastAction.myOrganism
 						ctx.beginPath()
 						ctx.moveTo(myOrganism.px,myOrganism.py)
-						ctx.lineTo(lastAction.srcActions[i].otherOrganism.px,lastAction.srcActions[i].otherOrganism.py)
+						ctx.lineTo(lastAction.x,lastAction.y)
 						ctx.stroke()
+						lastAction=lastAction.next
 					}
-				}else{
-					ctx.beginPath()
-					if(lastAction.otherOrganism.isVirus||lastAction.otherOrganism.size>myOrganism.size){
-						ctx.strokeStyle='rgb(231,76,60)'
-					}else{
-						ctx.strokeStyle='rgb(12,227,172)'
-					}
-					ctx.moveTo(myOrganism.px,myOrganism.py)
-					ctx.lineTo(lastAction.otherOrganism.px,lastAction.otherOrganism.py)
-					ctx.stroke()
-
-					if (lastAction.otherOrganism.size>lastAction.otherOrganism.pv){
-						ctx.beginPath()
-						ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size-lastAction.otherOrganism.pv,0,2*Math.PI)
-						ctx.stroke()
-					}else{
-						//console.log(lastAction.otherOrganism)
-					}	
-					ctx.beginPath()
-					ctx.arc(lastAction.otherOrganism.px,lastAction.otherOrganism.py,lastAction.otherOrganism.size+lastAction.otherOrganism.pv,0,2*Math.PI)
-					ctx.stroke()
-
-				}
-			
-				ctx.lineWidth=2	
-				if(lastAction.weightedValues[0]){
-					var consideration=lastAction.weightedValues[0][1]
-					ctx.strokeStyle=consideration.color
-					consideration.draw(ctx,lastAction.myOrganism,lastAction.otherOrganism)
-				}
-
-				ctx.strokeStyle='rgb(255,255,255)'
-				ctx.lineWidth=3
-				ctx.beginPath()
-				
-				ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size+lastAction.myOrganism.pv,0,2*Math.PI)
-				ctx.stroke()
-				if(lastAction.myOrganism.size>lastAction.myOrganism.pv){
-					ctx.beginPath()
-					ctx.arc(lastAction.myOrganism.px,lastAction.myOrganism.py,lastAction.myOrganism.size-lastAction.myOrganism.pv,0,2*Math.PI)
-					ctx.stroke()
-				}else{
-					//console.log(lastAction.myOrganism)
-				}
-
-				if(lastAction.ox){
-					ctx.beginPath()
-					ctx.setLineDash([5])
-					ctx.strokeStyle='rgb(180,180,180)'
-					ctx.moveTo(myOrganism.px,myOrganism.py)
-					ctx.lineTo(lastAction.ox,lastAction.oy)
-					ctx.stroke()
-					ctx.strokeStyle='rgb(255,255,255)'
-					ctx.setLineDash([0])
-				}
-
-				while(lastAction){
-					myOrganism=lastAction.myOrganism
-					ctx.beginPath()
-					ctx.moveTo(myOrganism.px,myOrganism.py)
-					ctx.lineTo(lastAction.x,lastAction.y)
-					ctx.stroke()
-					lastAction=lastAction.next
+					ctx.lineWidth*=2
 				}
 			}
 		}
