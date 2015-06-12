@@ -113,7 +113,7 @@ Consideration.prototype={
 		if(action&&ai.scoreHistory.length%this.delay&&this.weightedCalcCache[otherOrganism.id+action.type]){
 			return this.weightedCalcCache[otherOrganism.id+action.type]
 		}else{
-			if(Math.random()>.9){
+			if(Math.random()>.999){
 				this.weightedCalcCache={}
 			}
 			var value=this.calc(myOrganism,otherOrganism,action)
@@ -159,13 +159,13 @@ function Ai(move,split,shoot){
 
 	chrome.storage.local.get("gameHistory",function(items){
 		if(items.gameHistory){
-		this.gameHistory=items.gameHistory
+			this.gameHistory=items.gameHistory
 
-		var weights=[],
-		totalMaxSize=0
-		for(var i=0;i<this.considerations.length;i++){
-			weights[i]=0
-		}
+			var weights=[],
+			totalMaxSize=0
+			for(var i=0;i<this.considerations.length;i++){
+				weights[i]=0
+			}
 
 			for(var i=0;i<this.gameHistory.length;i++){
 				var stat=this.gameHistory[i],
@@ -173,14 +173,12 @@ function Ai(move,split,shoot){
 				for(var j=0;j<stat.considerationWeights.length;j++){
 					var maxSize=Math.max.apply(null,stat.sizes);
 					if(maxSize!=0&&maxSize!=-Infinity){
-						weights[j]=stat.considerationWeights[j]/totalWeight*maxSize
-						totalMaxSize+=maxSize
+						weights[j]+=stat.considerationWeights[j]/totalWeight*maxSize
 					}
 				}
 			}
 
 			this.totalWeights=weights
-			this.totalMaxSize=totalMaxSize
 		}
 	}.bind(this))
 }
@@ -198,7 +196,7 @@ var AiPrototype={
 	onTick:function(){},
 	totalWeights:[],
 	totalMaxSize:0,
-	isTeachMode:false,
+	isTeachMode:true,
 	lastActionBest5:[],
 	predictionDepth:1,
 	cushion:0,
@@ -694,7 +692,7 @@ var AiPrototype={
 				this.lastStateChangeDate=new Date
 				this.pings.push(Date.now()-startGameDate)
 				this.pings=this.pings.slice(this.pings.length-400,this.pings.length)
-				this.avgPing=this.pings.reduce(function(a,b,i){return a+b*i})/(this.pings.map(function(a,i){return i}).reduce(function(a,b){return a+b})+1)
+				this.avgPing=this.pings.reduce(function(a,b,i){return a+b*Math.pow(2,i)})/(this.pings.map(function(a,i){return Math.pow(2,i)}).reduce(function(a,b){return a+b})+1)
 			}
 			this.scoreHistory.push(score)
 			this.currentState='alive'
@@ -739,13 +737,12 @@ var AiPrototype={
 				chrome.storage.local.set({gameHistory:slicedGameHistory}) //TODO Learning is capped at 400 due to chrome's freezing when trying to save more than that
 
 				var weights=this.totalWeights
-
 				for(var i=this.gameHistory.length-1;i<this.gameHistory.length;i++){
 					var stat=this.gameHistory[i],
 						totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
 					for(var j=0;j<stat.considerationWeights.length;j++){
 						var maxSize=Math.max.apply(null,stat.sizes);
-						weights[j]=stat.considerationWeights[j]/totalWeight*maxSize
+						weights[j]+=stat.considerationWeights[j]/totalWeight*maxSize
 					}
 				}
 
@@ -753,6 +750,7 @@ var AiPrototype={
 
 				if(!this.isTeachMode){
 					for(var i=0;i<weights.length;i++){
+						weights[i]/=this.gameHistory.length
 						weights[i]+=Math.random()*100/(this.gameHistory.length%2?1:this.gameHistory.length)+1
 						this.considerations[i].weight=weights[i]
 					}
