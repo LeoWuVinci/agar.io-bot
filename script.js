@@ -244,7 +244,7 @@ ai.onDeath=function(){
 	heatMapCtx.strokeStyle='rgb(231,76,60)'
 	//heatMapCtx.strokeStyle="rgba(255,0,0,.5)"
 	heatMapCtx.beginPath()
-	heatMapCtx.arc(this.lastAction.myOrganism.px/64,this.lastAction.myOrganism.py/64,this.lastAction.myOrganism.size/64,0,2*Math.PI)
+	heatMapCtx.arc(this.lastAction.myOrganism.nx/64,this.lastAction.myOrganism.ny/64,this.lastAction.myOrganism.size/64,0,2*Math.PI)
 	heatMapCtx.stroke()
 	console.info("DEAD x_X")
 	console.info("Score",~~(this.scoreHistory[this.scoreHistory.length-1]/100))
