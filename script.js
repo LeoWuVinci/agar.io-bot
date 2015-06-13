@@ -80,8 +80,7 @@ $('#playBtn').after(playBtn).remove()
 
 $('<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/darkly/bootstrap.min.css" rel="stylesheet">').appendTo('head')
 body.append('<h4 id="ip-address"></h4>')
-$('#helloDialog h2 center').html("Agar.io <small>w/ Lio's AI Extension</small>")
-$(".text-muted[href='privacy.txt']")[0].nextSibling.nodeValue=" ";
+$('#helloDialog h2').html("Agar.io <small>w/ Lio's AI</small>")
 
 setDarkTheme(true)
 
