@@ -24,18 +24,18 @@ Advance Tactics
 //TODO Goto corner when huge
    */
 
-function Stat(startDate,endDate,sizes,considerationWeights){
+function Stat(startDate,endDate,scores,considerationWeights){
 	this.startDate=startDate
 	this.endDate=endDate
-	this.sizes=sizes
+	this.scores=scores
 	this.considerationWeights=considerationWeights
 }
 Stat.prototype={
 	startDate:null,
 	endDate:null,
-	sizes:[],
-	get maxSize(){
-		return Math.max.apply(null,this.sizes);
+	scores:[],
+	get maxScore(){
+		return Math.max.apply(null,this.scores);
 	},
 	considerationWeights:[],
 	lastActionOtherOrganismSize:0,
@@ -159,22 +159,20 @@ function Ai(move,split,shoot){
 
 	chrome.storage.local.get("gameHistory",function(items){
 		if(items.gameHistory){
-			this.gameHistory=items.gameHistory
-
-			var weights=[],
-			totalMaxSize=0
+			var weights=[]
 			for(var i=0;i<this.considerations.length;i++){
 				weights[i]=0
 			}
 
-			for(var i=0;i<this.gameHistory.length;i++){
-				var stat=this.gameHistory[i],
-					totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
-				for(var j=0;j<stat.considerationWeights.length;j++){
-					var maxSize=Math.max.apply(null,stat.sizes);
-					if(maxSize!=0&&maxSize!=-Infinity){
-						weights[j]+=stat.considerationWeights[j]/totalWeight*maxSize
+			for(var i=0;i<items.gameHistory.length;i++){
+				var stat=items.gameHistory[i],
+					totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b}),
+					maxScore=Math.max.apply(null,stat.scores)
+				if(maxScore!=0&&maxScore!=-Infinity){
+					for(var j=0;j<stat.considerationWeights.length;j++){
+						weights[j]+=stat.considerationWeights[j]/totalWeight*maxScore
 					}
+					this.gameHistory.push(stat)
 				}
 			}
 
@@ -195,7 +193,6 @@ var AiPrototype={
 	specialNames:{},
 	onTick:function(){},
 	totalWeights:[],
-	totalMaxSize:0,
 	isTeachMode:false,
 	lastActionBest5:[],
 	predictionDepth:1,
@@ -667,7 +664,7 @@ var AiPrototype={
 
 				this.gameHistory.push(stat)
 
-				var slicedGameHistory=this.gameHistory.slice(this.gameHistory.length-400,this.gameHistory.length)
+				var slicedGameHistory=this.gameHistory.slice(this.gameHistory.length-400>0?this.gameHistory.length-400:0,this.gameHistory.length)
 				chrome.storage.local.set({gameHistory:slicedGameHistory}) 
 
 				var weights=this.totalWeights
@@ -675,8 +672,8 @@ var AiPrototype={
 					var stat=this.gameHistory[i],
 						totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b})
 					for(var j=0;j<stat.considerationWeights.length;j++){
-						var maxSize=Math.max.apply(null,stat.sizes);
-						weights[j]+=stat.considerationWeights[j]/totalWeight*maxSize
+						var maxScore=Math.max.apply(null,stat.scores);
+						weights[j]+=stat.considerationWeights[j]/totalWeight*maxScore
 					}
 				}
 
@@ -684,8 +681,11 @@ var AiPrototype={
 
 				if(!this.isTeachMode){
 					for(var i=0;i<weights.length;i++){
-						weights[i]/=this.gameHistory.length
-						weights[i]+=Math.random()*100/(this.gameHistory.length%2?1:this.gameHistory.length)+1
+						weights[i]=Math.ceil(weights[i]/this.gameHistory.length)
+					}
+					var avgWeight=weights.reduce(function(a,b){return a+b})/weights.length	
+					for(var i=0;i<weights.length;i++){
+						weights[i]+=Math.random()*avgWeight/(this.gameHistory.length%2?1:this.gameHistory.length)+1
 						if(this.considerations[i]){
 							this.considerations[i].weight=weights[i]
 						}
