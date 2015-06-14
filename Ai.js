@@ -685,7 +685,7 @@ var AiPrototype={
 					}
 					var avgWeight=weights.reduce(function(a,b){return a+b})/weights.length	
 					for(var i=0;i<weights.length;i++){
-						weights[i]+=Math.random()*avgWeight/(this.gameHistory.length%2?1:this.gameHistory.length)+1
+						weights[i]+=Math.ceil(Math.random()*avgWeight/(this.gameHistory.length%2?1:this.gameHistory.length)+1)
 						if(this.considerations[i]){
 							this.considerations[i].weight=weights[i]
 						}
