@@ -1,7 +1,8 @@
 {
 	"manifest_version":2,
 	"name":"Lio's Agar.io AI Framework",
-	"version":"1.2.531",
+	"short_name":"Lio's AI",
+	"version":"1.3.531",
 	"background":{
 		"scripts":["eventPage.js"]
 	},

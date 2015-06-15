@@ -76,6 +76,7 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 	intuitionForm=$('<form id="intuition-form" class="form-horizontal"></form>').appendTo('#intuition-body'),
 	pingH4=$('<h4 id="ping"></h4>').appendTo(body)
 
+$('#favicon').remove() // Removes bad game code that causes style recalc
 $('#playBtn').after(playBtn).remove()
 
 $('<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/darkly/bootstrap.min.css" rel="stylesheet">').appendTo('head')
@@ -88,27 +89,8 @@ ai.onFoundSpecialName=function(name){
 	chrome.runtime.sendMessage(chatLibId,['foundSpecialName',name])
 }
 
-Chart.defaults.Line.pointDot=false
-Chart.defaults.Line.showScale=false
+
 Chart.defaults.global.responsive=false
-for(var i=0;i<100;i++){
-	labels.push(i)
-	data1.push(0)
-	data2.push(0)
-}
-var scoreChart=new Chart(scoreCanvas.get(0).getContext("2d")).Line({labels:labels,datasets:[{
-		label: "Current Game Scores",
-		fillColor: "rgba(220,220,220,0.2)",
-		strokeColor: "rgba(220,220,220,1)",
-		data: data1
-	},
-	{
-		label: "Past Game Scores",
-		fillColor: "rgba(151,187,205,1)",
-		strokeColor: "rgba(151,187,205,1)",
-		data:data2
-	}
-]})
 
 chrome.runtime.onMessage.addListener(function(m,s,res){
 	console.log('ai',m)
@@ -188,11 +170,6 @@ function renderStatus(){
 ai.onDraw=function(){
 	if(!((this.scoreHistory.length+1)%10)){
 		scoreH4.text(~~(this.scoreHistory[this.scoreHistory.length-1]/100)+' pts')
-		var j=0;
-		for(var i=this.scoreHistory.length>100?this.scoreHistory.length-100:0;i<this.scoreHistory.length;i++){
-			scoreChart.datasets[0].points[j++].value=~~(this.scoreHistory[i])
-		}
-		scoreChart.update()
 	}
 
 	var needsUpdate=false
@@ -234,12 +211,6 @@ ai.onDeath=function(){
 	pingH4.html(~~this.avgPing+"ms latency")
 
 	renderStatus()
-	j=0
-	for(var i=this.gameHistory.length>10?this.gameHistory.length-10:0;i<this.gameHistory.length;i++){
-		var gameStat=this.gameHistory[i];
-		scoreChart.datasets[1].points[10*j++].value=~~(gameStat.maxSize)
-	}
-	scoreChart.update()
 
 	heatMapCtx.strokeStyle='rgb(231,76,60)'
 	//heatMapCtx.strokeStyle="rgba(255,0,0,.5)"
