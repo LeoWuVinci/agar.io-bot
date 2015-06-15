@@ -209,7 +209,7 @@ var AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size
 			},
-			50
+			100
 		),
 		new Consideration(
 			"Avoid Blob w/ Slightly Larger Mass",
@@ -220,7 +220,8 @@ var AiPrototype={
 			},
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Chase Blob w/ Slightly Smaller Mass",
@@ -228,7 +229,7 @@ var AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return -Math.abs(myOrganism.size-otherOrganism.size)
 			},
-			25
+			50
 		),
 		new Consideration(
 			"Chase Nearest Smaller Blob",
@@ -247,7 +248,8 @@ var AiPrototype={
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
 				return -Math.pow(Math.pow(otherOrganism.nx-myOrganism.nx,2)+Math.pow(otherOrganism.ny-myOrganism.ny,2),.5)+otherOrganism.cushion+otherOrganism.size
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Avoid Colliding into Virus",
@@ -260,19 +262,20 @@ var AiPrototype={
 			function(myOrganism,otherOrganism,action){
 				return true
 			},
-			50
+			100
 		),
 		new Consideration(
 			"Chase Smaller Blobs near Edge",
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size*.85>otherOrganism.size
 					&&!otherOrganism.isVirus
+					&&otherOrganism.v
 					&&action.type=='move'
 			},
 			function(myOrganism,otherOrganism,action){
 				return Math.pow(5600-otherOrganism.nx,2)+Math.pow(5600-otherOrganism.ny,2)
 			},
-			25
+			50
 		),
 		new Consideration(
 			"Avoid Bigger Blobs near Edge",
@@ -283,7 +286,8 @@ var AiPrototype={
 			},
 			function(myOrganism,otherOrganism,action){
 				return Math.pow(5600-otherOrganism.nx,2)+Math.pow(5600-otherOrganism.ny,2)
-			}
+			},
+			25
 		),
 		
 		new Consideration(
@@ -296,7 +300,8 @@ var AiPrototype={
 				},
 			function(myOrganism,otherOrganism,action){
 				return myOrganism.size-otherOrganism.size
-			}
+			},
+			25
 		),
 		new Consideration(
 			"Avoid Nearest Virus",
@@ -306,9 +311,9 @@ var AiPrototype={
 					&&myOrganism.size*.85>otherOrganism.size
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
-				return -Math.pow(Math.pow(otherOrganism.nx-myOrganism.nx,2)+Math.pow(otherOrganism.ny-myOrganism.ny,2),2)+myOrganism.size+myOrganism.cushion
+				return -Math.pow(Math.pow(otherOrganism.nx-myOrganism.nx,2)+Math.pow(otherOrganism.ny-myOrganism.ny,2),.2)
 			},
-			50
+			100
 		),
 		new Consideration(
 			"Split on smaller blob",
@@ -317,7 +322,8 @@ var AiPrototype={
 			},
 			function(myOrganism,otherOrganism,action){
 				return otherOrganism.size-myOrganism.size
-			}
+			},
+			50
 		),
 		new Consideration(
 			'Split on farther blob',
@@ -336,7 +342,7 @@ var AiPrototype={
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size*.85
 				&&Math.pow(Math.pow(myOrganism.nx-otherOrganism.nx,2)+Math.pow(myOrganism.ny-otherOrganism.ny,2),.5)
-					<=otherOrganism.size+otherOrganism.cushion/3+myOrganism.cushion+Ai.prototype.cushion},
+					<=otherOrganism.size+(otherOrganism.cushion+myOrganism.cushion+Ai.prototype.cushion)/3},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
 			}
@@ -349,8 +355,8 @@ var AiPrototype={
 				return action.type=='shoot'
 				&&otherOrganism.name!="Best route"
 				&&myOrganism.size<otherOrganism.size*.85
-				&&dist>otherOrganism.size+otherOrganism.cushion/3+myOrganism.cushion+Ai.prototype.cushion
-				&&dist<=otherOrganism.size+otherOrganism.cushion*2/3+myOrganism.cushion+Ai.prototype.cushion
+				&&dist>otherOrganism.size+(otherOrganism.cushion+myOrganism.cushion+Ai.prototype.cushion)/3
+				&&dist<=otherOrganism.size+(otherOrganism.cushion+myOrganism.cushion+Ai.prototype.cushion)*2/3
 				},
 			function(myOrganism,otherOrganism,action){ //Compares with dodging or just moving away
 				return true
@@ -364,7 +370,8 @@ var AiPrototype={
 			},
 			function(){
 				return true
-			}
+			},
+			25
 		)
 	],
 	actionGenerators:[
@@ -448,7 +455,7 @@ var AiPrototype={
 					&&otherOrganism.size<myOrganism.size*.425
 					&&(!specialNames[otherOrganism.name]||specialNames[otherOrganism.name]=='ignore')
 					&&dist<ftrDist
-					&&dist<600-myOrganism.size
+					&&dist<575-myOrganism.size
 			},
 			function(myOrganism,otherOrganism){
 				return true
@@ -649,10 +656,10 @@ var AiPrototype={
 						//TODO maybe use max cushion instead of avg?
 					if(
 						mOrganism.size<oOrganism.size*.85
-						&&oOrganism.size-oOrganism.cushion-mOrganism.cushion>stat.lastActionOtherOrganismDist	
+						&&oOrganism.size-oOrganism.cushion>stat.lastActionOtherOrganismDist	
 					){
 
-						var cushion=oOrganism.size-oOrganism.cushion-mOrganism.cushion-stat.lastActionOtherOrganismDist
+						var cushion=oOrganism.size-oOrganism.cushion-stat.lastActionOtherOrganismDist
 						this.cushions.push(cushion)
 						this.cushions=this.cushions.slice(this.cushions.length-400,this.cushions.length)
 						Ai.prototype.cushion=this.cushions.reduce(function(a,b,i){return a+b*i})
@@ -707,8 +714,9 @@ var AiPrototype={
 				var action=actionGenerator.genAction(myOrganism,otherOrganism)
 				
 				if(myOrganism.size<otherOrganism.size*.85){
-					var	weightA=5600, 
-						weightB=Math.pow(Math.pow(action.x-myOrganism.nx,2)+Math.pow(action.y-myOrganism.ny,2),.5)
+					var	weightA=50, 
+						//weightB=Math.pow(5600-myOrganism.nx,2)+Math.pow(5600-myOrganism.ny,2)
+						weightB=1
 							//min=0 max=5600
 					action.ox=action.x
 					action.oy=action.y
