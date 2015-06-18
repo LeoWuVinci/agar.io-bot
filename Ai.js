@@ -109,8 +109,8 @@ Consideration.prototype={
 	calc:function(myOrganism,otherOrganism,action){},
 	min:0,
 	max:0,
-	weightedCalc:function(myOrganism,otherOrganism,action){
-		if(action&&ai.scoreHistory.length%this.delay&&this.weightedCalcCache[otherOrganism.id+action.type]){
+	weightedCalc:function(myOrganism,otherOrganism,action,clearCache){
+		if(action&&ai.scoreHistory.length%this.delay&&this.weightedCalcCache[otherOrganism.id+action.type]&&!clearCache){
 			return this.weightedCalcCache[otherOrganism.id+action.type]
 		}else{
 			if(Math.random()>.9999){
@@ -188,15 +188,15 @@ var AiPrototype={
 	cushions:[],
 	pings:[],
 	splitCooldown:10000,
-	depth:2,
+	depth:3,
 	onDraw:function(){},
 	specialNames:{},
 	onTick:function(){},
 	totalWeights:[],
-	isTeachMode:false,
+	isTeachMode:true,
 	lastActionBest5:[],
-	predictionDepth:1,
 	cushion:0,
+	heatmapEnabled:false,
 	considerations:[
 		new Consideration(
 			"Avoid Virus Attackers",
@@ -235,7 +235,8 @@ var AiPrototype={
 			"Chase Nearest Smaller Blob",
 			function(myOrganism,otherOrganism,action){return !otherOrganism.isVirus&&myOrganism.size*.85>otherOrganism.size&&action.type=='move'},
 			function(myOrganism,otherOrganism,action){
-				return -Math.pow(Math.pow(myOrganism.nx-otherOrganism.nx,2)+Math.pow(myOrganism.ny-otherOrganism.ny,2),.5)
+				//return -Math.pow(Math.pow(myOrganism.nx-otherOrganism.nx,2)+Math.pow(myOrganism.ny-otherOrganism.ny,2),.5)
+				return -Math.pow(Math.pow(myOrganism.nx-otherOrganism.nx,2)+Math.pow(myOrganism.ny-otherOrganism.ny,2),.1)
 			},
 			25
 		),
@@ -247,7 +248,7 @@ var AiPrototype={
 				&&action.type=='move'
 			},
 			function(myOrganism,otherOrganism,action){ //THIS IS CORRECT DONT CHANGE
-				return -Math.pow(Math.pow(otherOrganism.nx-myOrganism.nx,2)+Math.pow(otherOrganism.ny-myOrganism.ny,2),.5)+otherOrganism.cushion+otherOrganism.size
+				return -Math.pow(Math.pow(otherOrganism.nx-myOrganism.nx,2)+Math.pow(otherOrganism.ny-myOrganism.ny,2),.1)
 			},
 			25
 		),
@@ -741,6 +742,7 @@ var AiPrototype={
 
 				if(
 					action.type=='move'
+					&&otherOrganism.name!="Best route"
 					&&!otherOrganism.isVirus
 					&&myOrganism.size<otherOrganism.size*.85
 					&&Math.pow(Math.pow(myOrganism.nx-otherOrganism.nx,2)+Math.pow(myOrganism.ny-otherOrganism.ny,2),.5)
@@ -826,7 +828,11 @@ var AiPrototype={
 				var results=this.simulateAction(myOrganism,otherOrganisms,action)
 				action.next=this.findBestAction(results.myOrganism,results.otherOrganisms,depth-1)
 				if(action.next){
-					action.importance+=action.next.importance
+					if(action.next.myOrganism.size>action.next.otherOrganism.size){
+						action.importance+=action.next.importance
+					}else{
+						action.importance-=action.next.importance
+					}
 				}
 				return action
 			},this)
@@ -838,6 +844,7 @@ var AiPrototype={
 
 		return actions[0]
 	},
+	heatMapType:6,
 	draw:function(ctx){
 		var lastAction=this.lastAction
 		miniMapCtx.clearRect(0,0,175,175)
@@ -855,6 +862,74 @@ var AiPrototype={
 			miniMapCtx.beginPath()
 			miniMapCtx.arc(lastAction.myOrganism.nx/64,lastAction.myOrganism.ny/64,lastAction.myOrganism.size/64,0,2*Math.PI)
 			miniMapCtx.stroke()
+		}
+
+		if(this.heatmapEnabled
+			&&this.lastAction
+			&&this.lastAction.myOrganism
+			&&this.lastAction.myOrganism.src
+			&&this.lastAction.myOrganism.src.length
+		){
+			var mOrganism=this.lastAction.myOrganism.src[0],
+				size=~~mOrganism.size*2
+
+			if ([3,4,9,11].indexOf(this.heatMapType)!=-1){
+				for(var x=mOrganism.x-12*size;x<mOrganism.x+12*size;x+=size){
+					for(var y=mOrganism.y-10*size;y<mOrganism.y+10*size;y+=size){
+						var cOrganism=new Organism
+						Object.keys(mOrganism).forEach(function(key){
+							cOrganism[key]=mOrganism[key]
+						})
+						cOrganism.nx=x
+						cOrganism.ny=y
+						
+						var value=Math.max.apply(null,this.otherOrganisms
+								.filter(function(oOrganism){return this.considerations[this.heatMapType].filter(cOrganism,oOrganism,{type:'move'})},this)
+								.map(function(oOrganism){
+							return this.considerations[this.heatMapType].weightedCalc(cOrganism,oOrganism,{type:'move'},true)
+						},this))/2
+						if(value==Infinity){
+							value=1
+						}
+						if(value>0){
+							ctx.fillStyle='rgba(255,255,100,'+value+')'
+							ctx.fillRect(x-~~(size/2),y-~~(size/2),size,size)
+						}	
+					}
+				}
+			}else if([0,1,2,8,10].indexOf(this.heatMapType)!=-1){
+				this.otherOrganisms
+					.filter(function(oOrganism){
+						return this.considerations[this.heatMapType].filter(mOrganism,oOrganism,{type:'move'})
+					},this)
+					.forEach(function(oOrganism){
+						var value=this.considerations[this.heatMapType].weightedCalc(mOrganism,oOrganism,{type:'move'},true)
+						ctx.fillStyle='rgba(255,255,100,'+value+')'
+						ctx.fillRect(oOrganism.nx-~~oOrganism.size*2,oOrganism.ny-~~oOrganism.size*2,oOrganism.size*4,oOrganism.size*4)
+					},this)	
+			}else if([6,7].indexOf(this.heatMapType)!=-1){
+				for(var x=mOrganism.x-12*size;x<mOrganism.x+12*size;x+=size){
+					for(var y=mOrganism.y-10*size;y<mOrganism.y+10*size;y+=size){
+						var cOrganism=new Organism
+						Object.keys(mOrganism).forEach(function(key){
+							cOrganism[key]=mOrganism[key]
+						})
+						cOrganism.nx=x
+						cOrganism.ny=y
+					
+						var value=this.considerations[this.heatMapType].weightedCalc({},cOrganism,{type:'move'},true)
+						if(value==Infinity){
+							value=1
+						}
+						if(value>0){
+							ctx.fillStyle='rgba(255,255,100,'+value+')'
+							ctx.fillRect(x-~~(size/2),y-~~(size/2),size,size)
+						}	
+
+					}
+				}
+				
+			}
 		}
 
 		if(this.linesEnabled){
