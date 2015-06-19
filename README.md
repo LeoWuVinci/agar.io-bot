@@ -7,6 +7,12 @@ So in the future, look out for "Lio's Agar.io AI Framework"
 See the latest bot in action as well as development while streaming at
 http://nomday.com/lio
 
+## Purpose
+The purpose of this bot is to explore decision-making based on statistics instead of
+hard-coded rules.  This is not a bot to enhance normal gameplay.  There's also no team-related features.  Considerations should be fairly simple and not need to consider more than one other organism at a time.  This effectly excludes any "advance" strategies.  The code is designed to be
+"forked" easily so everything is kept at the bare necessities.  If you want to (for example)
+create a better pathfinder, forking the code would be the best choice.
+
 ## How to install from GitHub
 https://youtu.be/fEVX4xmEn4s
 
