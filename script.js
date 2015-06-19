@@ -10,6 +10,7 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 		'Moon',
 		'Wojak',
 		'Imperial Japan',
+		'Skynet',
 		'Tumblr',
 		'Doge',
 		'Earth',
@@ -159,7 +160,7 @@ function renderStatus(){
 						$(intuitionPanel).modal()	
 					}))
 	}else if(ai.gameHistory.length<100){
-		aiStatusH4.html('<span class="alert">INFANCY STAGE FOR '+(100-ai.gameHistory.length)+' GAMES</span>')
+		aiStatusH4.html('<span class="alert">INFANCY STAGE</span>')
 	}else if(ai.gameHistory.length%2){
 		aiStatusH4.html('<span class="alert">EXPERIMENTING</span>')
 	}else{
