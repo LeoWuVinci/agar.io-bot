@@ -599,6 +599,8 @@ var AiPrototype={
 		Ai.prototype.myOrganisms=myOrganisms //TODO Find a better way to organize this
 		if(myOrganisms.length){
 			var otherOrganisms=this.otherOrganisms=organisms.filter(function(organism){
+					organism.nx=organism.D
+					organism.ny=organism.F
 					if(!organism.onx){
 						organism.onx=organism.nx
 						organism.ony=organism.ny
