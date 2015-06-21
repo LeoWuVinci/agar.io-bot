@@ -59,7 +59,7 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 		.get(0)
 		.getContext("2d"),
 	intuitionBtn=$('<button id="intuition-btn" class="btn"></button>').appendTo('body').click(function(){
-		ai.isTeachMode=!ai.isTeachMode
+		ai.allowIntuition=!ai.allowIntuition
 		renderIntuitionBtn()	
 		}),
 	intuitionPanel=$(
@@ -94,18 +94,10 @@ ai.onFoundSpecialName=function(name){
 Chart.defaults.global.responsive=false
 
 chrome.runtime.onMessage.addListener(function(m,s,res){
-	console.log('ai',m)
 	switch(m[0]){
 		case 'setIntuition':
 			ai.considerations[m[1]].weight=Math.abs(parseInt(m[2]))
 			res(m)
-			break;
-		case 'specialNames':
-			if(m[2]=="remove"){
-				delete ai.specialNames[m[1]]
-			}else{
-				ai.specialNames[m[1]]=m[2]
-			}
 			break;
 		case 'getAi':
 			res(ai[m[1]])
@@ -123,8 +115,11 @@ function renderIntuitionMenu(){
 			$('<div class="col-sm-6"></div>').appendTo(row),
 			$('<div class="col-sm-6"></div>').appendTo(row),
 		]
-	ai.considerations.forEach(function(consideration,i){
-		$('<div class="form-group">'
+
+	var i=0
+	ai.actionGenerators.forEach(function(actionGenerator){
+		actionGenerator.considerations.forEach(function(consideration){
+			$('<div class="form-group">'
 				+'<label for="rule-'+i+'" class="col-sm-8 control-label">'
 					+consideration.label
 				+'</label>'
@@ -135,13 +130,14 @@ function renderIntuitionMenu(){
 				).change(function(){
 				consideration.weight=Math.abs(parseInt($(this).children('input').val()))
 			}))
-			.appendTo(columns[i%2])
+			.appendTo(columns[i++%2])
+		})
 	})
 }
 
 function renderIntuitionBtn(){
 	intuitionBtn.removeClass('btn-success btn-default active')
-	if(!ai.isTeachMode){
+	if(ai.allowIntuition){
 		intuitionBtn.addClass('btn-success').addClass('active').html("Intuition ON")
 	}else{
 		intuitionBtn.addClass('btn-default').html("Intuition OFF")
@@ -151,7 +147,7 @@ function renderIntuitionBtn(){
 renderIntuitionBtn()
 
 function renderStatus(){
-	if(ai.isTeachMode){
+	if(!ai.allowIntuition){
 		aiStatusH4.html('Considerations ')
 			.append(
 				$('<a href="#">Edit</a>')
@@ -188,11 +184,11 @@ ai.onDraw=function(){
 	if(needsUpdate){
 		considerationChart.update()
 	}
-
+	
 	if(ai.lastActionBest5.length){
 		lastActionBest5Div.html(ai.lastActionBest5
 			.map(function(action){return '<li>'
-				+(action.calcImportance(ai.considerations)*1000).toFixed(1)+' '
+				//+(action.calcImportance(ai.considerations)*1000).toFixed(1)+' '
 				+action.type
 				+'('+~~action.x+','+~~action.y+') '
 				+(action.weightedValues[0]?('<span class="label consideration-label" style="background-color:'+action.weightedValues[0][1].color+'">'+action.weightedValues[0][1].label+'</span>'):'')+' '
@@ -214,7 +210,6 @@ ai.onDeath=function(){
 	renderStatus()
 
 	heatMapCtx.strokeStyle='rgb(231,76,60)'
-	//heatMapCtx.strokeStyle="rgba(255,0,0,.5)"
 	heatMapCtx.beginPath()
 	heatMapCtx.arc(this.lastAction.myOrganism.nx/64,this.lastAction.myOrganism.ny/64,this.lastAction.myOrganism.size/64,0,2*Math.PI)
 	heatMapCtx.stroke()

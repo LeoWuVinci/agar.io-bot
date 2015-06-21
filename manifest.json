@@ -2,7 +2,7 @@
 	"manifest_version":2,
 	"name":"Lio's Agar.io AI Framework",
 	"short_name":"Lio's AI",
-	"version":"1.4.531",
+	"version":"1.4.544",
 	"background":{
 		"scripts":["eventPage.js"]
 	},
@@ -18,7 +18,7 @@
 				"quadtree_3.js",
 				"AiInterface.js",
 				"Ai.js",
-				"main_out_531v2.js",
+				"main_out_544v2.js",
 				"script.js"
 			],
 			"run_at":"document_end"
