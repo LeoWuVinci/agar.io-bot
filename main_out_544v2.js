@@ -449,9 +449,11 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
         g.restore();
         x && x.width && g.drawImage(x, r - x.width - 10, 10);
         J = Math.max(J, db());
+		/*
         0 != J && (null == ja && (ja = new ka(24, "#FFFFFF")), ja.u("Score: " +
             ~~(J / 100)), c = ja.G(), a = c.width, g.globalAlpha = .2, g.fillStyle = "#000000", g.fillRect(10, s - 10 - 24 - 10, a + 10, 34), g.globalAlpha = 1, g.drawImage(c, 15, s - 10 - 24 - 5));
-        eb();
+       */ 
+		eb();
         b = Date.now() - b;
         b > 1E3 / 60 ? z -= .01 : b < 1E3 / 65 && (z += .01);.4 > z && (z = .4);
         1 < z && (z = 1)
