@@ -143,7 +143,9 @@ for(var key in actionGeneratorPrototype){
 }
 
 function Ai(move,split,shoot){
-	AiInterface.call(this,move,split,shoot)
+	this.move=move
+	this.split=split
+	this.shoot=shoot
 
 	this.considerations=[]
 	this.actionGenerators.forEach(function(actionGenerator){
@@ -178,10 +180,8 @@ function Ai(move,split,shoot){
 	}.bind(this))
 }
 
-Ai.prototype=Object.create(AiInterface.prototype)
-//size = radius
-//score=size*size/100
-var AiPrototype={
+Ai.prototype={
+	nicks:[],
 	totalWeightedScore:0,
 	cushions:[],
 	pings:[],
@@ -975,9 +975,6 @@ var AiPrototype={
 		}
 		this.onDraw()
 	}
-}
-for(key in AiPrototype){
-	Ai.prototype[key]=AiPrototype[key]
 }
 
 //TODO Become sentient.

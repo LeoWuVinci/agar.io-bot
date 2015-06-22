@@ -1,8 +1,8 @@
-# agario-bot
-Agar.io bot with a touch of genetic algorithms
+# agario-ai-framework
+Agar.io AI with a touch of genetic algorithms
 
-I'm still debating about renaming this repo because it's more meant to be an ai framework.
-So in the future, look out for "Lio's Agar.io AI Framework"
+Consider the bot that runs off the framework as example code.
+Feel free to fork this project and create your "optimal" bot
 
 See the latest bot in action as well as development while streaming at
 http://nomday.com/lio

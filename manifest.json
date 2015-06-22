@@ -1,11 +1,8 @@
 {
 	"manifest_version":2,
-	"name":"Lio's Agar.io AI Framework",
-	"short_name":"Lio's AI",
-	"version":"1.4.544",
-	"background":{
-		"scripts":["eventPage.js"]
-	},
+	"name":"Lio's Agar.io Bot Framework",
+	"short_name":"LioBot",
+	"version":"1.5.544",
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/"],
@@ -15,8 +12,6 @@
 				"ext/jquery.js",
 				"ext/Chart.js",
 				"ext/bootstrap.min.js",
-				"quadtree_3.js",
-				"AiInterface.js",
 				"Ai.js",
 				"main_out_544v2.js",
 				"script.js"

@@ -21,22 +21,10 @@ a {
 	right: 190px;
 }
 
-#score-chart {
-	position:fixed;
-	top:0px;
-}
-
 #ai-intuition {
 	position:fixed;
 	width:100%;
 	bottom:0px;
-	text-align:center;
-}
-
-#ip-address {
-	position:fixed;
-	top:0px;
-	width: 100%;
 	text-align:center;
 }
 

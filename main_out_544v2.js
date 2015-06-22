@@ -1299,10 +1299,12 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
         }
     }
 
-	var ai=window.ai=new Ai(
+	var ai=f.ai=new Ai(
 			function(x1,y2){Y=x1;Z=y2;N()},
 			function(){D(17)},
 			function(){D(21)})
+
+	ai.nicks=Sa
 	var onUpdate=$a
 	$a=function(a,c){
 		onUpdate(a,c)
@@ -1316,4 +1318,6 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 	Ja=function(){
 		ai.updateLeaderboard(B,G)
 	}
+
+	cb=function(){}
 })(window, window.jQuery);

@@ -1,34 +1,26 @@
 var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
-	skinNames=[
+	nicks=[
 		'twitch/gamerlio',
 		'nomday.com/lio',
-		'Yaranaika',
-		'Pokerface',
-		'Sir',
-		'Mars',
-		'Stalin',
-		'Moon',
-		'Wojak',
-		'Imperial Japan',
 		'Skynet',
-		'Tumblr',
-		'Doge',
-		'Earth',
-		'Bait',
-		'Steam',
-		'Piccolo',
-		'Sanik',
-		'Cia',
-		'4chan',
-		'Ayy Lmao',
-		'Qing Dynasty',
-	],
+		'bender',
+		'Sonny',
+		'Rosey',
+		'MCP',
+		'Tron',
+		'Johnny 5',
+		'Data',
+		'Agent Smith',
+		'C-3PO',
+		'R2D2',
+		'HAL 9000'
+	].concat(ai.nicks),
 	body=$('body'),
 	startGameDate,
 	playBtn=$('#playBtn').removeAttr('onclick').clone().click(function(e){
 		clearInterval(intervalId)
 		startGameDate=Date.now()
-		setNick(skinNames[~~(skinNames.length*Math.random())]);
+		setNick(nicks[~~(nicks.length*Math.pow(Math.random(),.5))]);
 		return false;
 	}),
 	secLeft=60,
@@ -38,13 +30,9 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 		}else{
 			clearInterval(intervalId)
 			startGameDate=Date.now()
-			setNick(skinNames[~~(skinNames.length*Math.random())]);
+			setNick(nicks[~~(nicks.length*Math.pow(Math.random(),2))]);
 		}
 	},1000),
-	scoreCanvas=$('<canvas id="score-chart" width="200" height="200"></canvas>').appendTo(body),
-	labels=[],
-	data1=[],
-	data2=[],
 	lastActionBest5Div=$('<ol id="last-action-best-5"></ol>').appendTo(body),
 	aiStatusDiv=$('<div id="ai-intuition"></div>').appendTo('body'),
 	aiStatusH4=$('<h4 id="ai-status"></h4>').appendTo(aiStatusDiv),
@@ -77,36 +65,16 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 	intuitionForm=$('<form id="intuition-form" class="form-horizontal"></form>').appendTo('#intuition-body'),
 	pingH4=$('<h4 id="ping"></h4>').appendTo(body)
 
-$('#favicon').remove() // Removes bad game code that causes style recalc
 $('#playBtn').after(playBtn).remove()
 
 $('<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/darkly/bootstrap.min.css" rel="stylesheet">').appendTo('head')
-body.append('<h4 id="ip-address"></h4>')
-$('#helloDialog h2').html("Agar.io <small>w/ Lio's AI</small>")
+$('#helloDialog h2')
+	.html("Agar.io <small>w/ LioBot</small>")
 
+$('#helloDialog .form-group:first-child')
+	.append('<p class="help-block" style="text-align: center">Goto <kbd>chrome://extensions</kbd> to disable bot</p>')
+	.next().remove()
 setDarkTheme(true)
-
-ai.onFoundSpecialName=function(name){
-	chrome.runtime.sendMessage(chatLibId,['foundSpecialName',name])
-}
-
-
-Chart.defaults.global.responsive=false
-
-chrome.runtime.onMessage.addListener(function(m,s,res){
-	switch(m[0]){
-		case 'setIntuition':
-			ai.considerations[m[1]].weight=Math.abs(parseInt(m[2]))
-			res(m)
-			break;
-		case 'getAi':
-			res(ai[m[1]])
-			break;
-		case 'setAi':
-			ai[m[1]]=m[2]
-			break;
-	}
-})
 
 function renderIntuitionMenu(){
 	intuitionForm.html("")
@@ -188,7 +156,6 @@ ai.onDraw=function(){
 	if(ai.lastActionBest5.length){
 		lastActionBest5Div.html(ai.lastActionBest5
 			.map(function(action){return '<li>'
-				//+(action.calcImportance(ai.considerations)*1000).toFixed(1)+' '
 				+action.type
 				+'('+~~action.x+','+~~action.y+') '
 				+(action.weightedValues[0]?('<span class="label consideration-label" style="background-color:'+action.weightedValues[0][1].color+'">'+action.weightedValues[0][1].label+'</span>'):'')+' '
@@ -201,24 +168,20 @@ ai.onDraw=function(){
 
 ai.onDeath=function(){
 	setTimeout(function(){
-		startGameDate=Date.now()
-		setNick(skinNames[~~(skinNames.length*Math.pow(Math.random(),2))])
+			startGameDate=Date.now()
+			setNick(nicks[~~(nicks.length*Math.pow(Math.random(),2))])
 		},5000)
 
 	pingH4.html(~~this.avgPing+"ms latency")
-
 	renderStatus()
 
 	heatMapCtx.strokeStyle='rgb(231,76,60)'
 	heatMapCtx.beginPath()
 	heatMapCtx.arc(this.lastAction.myOrganism.nx/64,this.lastAction.myOrganism.ny/64,this.lastAction.myOrganism.size/64,0,2*Math.PI)
 	heatMapCtx.stroke()
-	console.info("DEAD x_X")
-	console.info("Score",~~(this.scoreHistory[this.scoreHistory.length-1]/100))
-	console.info("Time spent alive",(Date.now()-this.lastStateChangeDate.getTime())/60000,"mins")
 }
 
-var leaderboardList=$('<ul class="list-unstyled"></ul>').appendTo($('<div id="leaderboard-div"><h4>Leaderboard</h4></div>').appendTo('body'))
+var leaderboardList=$('<ul class="list-unstyled"></ul>').appendTo($('<div id="leaderboard-div"><h4>Leaderboard <small>UserID</small></h4></div>').appendTo('body'))
 ai.updateLeaderboard=function(organisms,myOrganismIds){
 	leaderboardList.html('')
 	organisms.forEach(function(organism){
