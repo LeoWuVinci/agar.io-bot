@@ -1,33 +1,4 @@
 "use strict";
-/*
-Advance Tactics
-1. Using viruses to trap players
-2. Shoot at viruses to break large blobs
-
-//TODO Refactor action code for new possible actions
-//TODO Clean up tree traversal code
-//TODO Deal with gameHistory possible memory limit issue
-//TODO revisit escape path
-//TODO revisit "Too close for comfort"
-//TODO Jump servers every 4hrs
-//TODO Consider 16 piece split has the ability to eat viruses when you have more than 100 mass
-//TODO High score
-
-//TODO does feeding cell keep two from combining?
-
-//TODO Consider lost of velocity into calculating best moves
-//TODO Consider enemies about to merge
-//TODO Split for escape
-//TODO Consider random paths at 1200+
-//TODO Feeding, Attacking, Escaping phase
-//TODO Eat based on direction
-//TODO Goto corner when huge
-   */
-
-//TODO Cache action generators
-//TODO Change how actions are prioritized
-//TODO Double the cushion 
-
 function Stat(startDate,endDate,maxScore,considerationWeights){
 	this.startDate=startDate
 	this.endDate=endDate
