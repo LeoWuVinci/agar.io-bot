@@ -1,8 +1,12 @@
-# agario-ai-framework
-Agar.io AI with a touch of genetic algorithms
+# agario-bot-framework
+Agar.io Bot Framework for others to create their own bots.
 
-Consider the bot that runs off the framework as example code.
-Feel free to fork this project and create your "optimal" bot
+Even though the bot included has many different algorithms such
+as genetic algorithms and velocity prediction, it is just
+an example and isn't optimized to get on the leaderboard.
+Please consider it as a sample of what is possible.
+
+Feel free to fork this project and create your own custom bot
 
 See the latest bot in action as well as development while streaming at
 http://nomday.com/lio
