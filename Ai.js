@@ -125,7 +125,7 @@ function Ai(move,split,shoot){
 		},this)
 	},this)
 
-	chrome.storage.local.get("gameHistory",function(items){
+	chrome.storage.local.get("gameHistory5",function(items){
 		if(items.gameHistory){
 			var weights=[]
 			for(var i=0;i<this.considerations.length;i++){
@@ -557,7 +557,7 @@ Ai.prototype={
 				this.gameHistory.push(stat)
 
 				var slicedGameHistory=this.gameHistory.slice(this.gameHistory.length-400>0?this.gameHistory.length-400:0,this.gameHistory.length)
-				chrome.storage.local.set({gameHistory:slicedGameHistory}) 
+				chrome.storage.local.set({gameHistory5:slicedGameHistory}) 
 
 				var weights=this.totalWeights
 				for(var i=this.gameHistory.length-1;i<this.gameHistory.length;i++){
