@@ -136,6 +136,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             },
             success: function(a) {
                 a = a.split("\n");
+				console.log('connect("ws://'+a[0]+'","'+a[1]+'")')
                 Ha("ws://" + a[0], a[1])
             },
             dataType: "text",

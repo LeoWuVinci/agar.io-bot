@@ -176,10 +176,6 @@ function Ai(move,split,shoot){
 			this.totalWeights=weights
 		}
 	}.bind(this))
-
-	setInterval(function(){
-		this.aiTick()
-	}.bind(this),40)
 }
 
 Ai.prototype=Object.create(AiInterface.prototype)
@@ -451,38 +447,31 @@ var AiPrototype={
 				})
 		}
 	},
-	mergedOrganism:null,
-	action:null,
-	actions:[],
-	aiTickCount:0,
-	aiTick:function(){
-		if(this.mergedOrganism){
-			this.action=this.findBestAction(this.mergedOrganism,this.otherOrganisms,this.depth)
-		}
-		this.aiTickCount++
-    },
+	actionCooldown:0,
 	tick:function(organisms,myOrganisms,score){
-		Ai.prototype.myOrganisms=this.myOrganisms=myOrganisms //TODO Find a better way to organize this
-		if(myOrganisms.length){
-			var otherOrganisms=this.otherOrganisms=organisms.filter(function(organism){
-					organism.nx=organism.D
-					organism.ny=organism.F
-					
-					if(!organism.onx){
-						organism.onx=organism.nx
-						organism.ony=organism.ny
-					}
-
-					organism.dx=organism.nx-organism.onx
-					organism.dy=organism.ny-organism.ony
-					organism.v=Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
-					organism.cushion=organism.v*this.avgPing/40
-
+		var otherOrganisms=this.otherOrganisms=organisms.filter(function(organism){
+				organism.nx=organism.D
+				organism.ny=organism.F
+				organism.isVirus=organism.d
+				
+				if(!organism.onx){
 					organism.onx=organism.nx
 					organism.ony=organism.ny
-					return myOrganisms.indexOf(organism)==-1
-				},this),
-				mergedOrganism=new Organism(),
+				}
+
+				organism.dx=organism.nx-organism.onx
+				organism.dy=organism.ny-organism.ony
+				organism.v=Math.pow(Math.pow(organism.dx,2)+Math.pow(organism.dy,2),.5)
+				organism.cushion=organism.v*this.avgPing/40
+
+				organism.onx=organism.nx
+				organism.ony=organism.ny
+				return myOrganisms.indexOf(organism)==-1
+			},this)
+
+
+		if(myOrganisms.length){
+			var mergedOrganism=new Organism(),
 				totalSize=myOrganisms
 					.map(function(myOrganism){return myOrganism.size})
 					.reduce(function(a,b){return a+b})
@@ -495,10 +484,10 @@ var AiPrototype={
 				mergedOrganism[key]=totalValue/totalSize
 			})
 
-			this.mergedOrganism=mergedOrganism
+			var action=this.findBestAction(mergedOrganism,otherOrganisms,this.depth)
 
-			var action=this.action
-			if (action){
+			this.actionCooldown--
+			if (action&&(this.actionCooldown<1||action.myOrganism.size<action.otherOrganism.size*.85||action.myOrganism.src.length>1)){
 				if(action.myOrganism.size<action.otherOrganism.size*.85
 					&&Math.pow(Math.pow(action.x-5600,2)+Math.pow(action.y-5600,2),.5)>5600
 				){
@@ -527,6 +516,16 @@ var AiPrototype={
 						this.shoot()
 					break;
 				}
+				
+				if(!action.otherOrganism.v&&action.myOrganism.size*.85>action.otherOrganism.size){			
+					this.actionCooldown=action.myOrganism.v?
+							~~((Math.pow(
+								Math.pow(action.myOrganism.nx-action.otherOrganism.nx,2)+Math.pow(action.myOrganism.ny-action.otherOrganism.ny,2),.5)-action.myOrganism.size)
+							/action.myOrganism.v/2)
+						:0
+				}else{
+					this.actionCooldown=0
+				}	
 				this.lastAction=action
 			}
 
