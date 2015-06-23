@@ -136,7 +136,6 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             },
             success: function(a) {
                 a = a.split("\n");
-				console.log('connect("ws://'+a[0]+'","'+a[1]+'")')
                 Ha("ws://" + a[0], a[1])
             },
             dataType: "text",
@@ -187,7 +186,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             L(a);
             a = K(5);
             a.setUint8(0, 255);
-            a.setUint32(1, 673720361, !0);
+            a.setUint32(1, 154669859, !0);
             L(a);
             a = K(1 + b.length);
             a.setUint8(0, 80);

@@ -2,7 +2,7 @@
 	"manifest_version":2,
 	"name":"Lio's Agar.io Bot Framework",
 	"short_name":"LioBot",
-	"version":"1.5.544",
+	"version":"1.5.548",
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/"],
@@ -13,7 +13,7 @@
 				"ext/Chart.js",
 				"ext/bootstrap.min.js",
 				"Ai.js",
-				"main_out_544v2.js",
+				"main_out_548v2.js",
 				"script.js"
 			],
 			"run_at":"document_end"
