@@ -72,3 +72,17 @@ input, .consideration-label {
 	left: 5px;
 	top: 0px;
 }
+
+#exp{
+	position:fixed;
+	left:100px;
+	bottom: 0px;
+	width:200px;
+	margin-bottom: 5px;
+}
+
+#lvl{
+	position:fixed;
+	left:100px;
+	bottom: 20px;
+}

@@ -125,15 +125,15 @@ function Ai(move,split,shoot){
 		},this)
 	},this)
 
-	chrome.storage.local.get("gameHistory5",function(items){
-		if(items.gameHistory){
+	chrome.storage.local.get(["gameHistory5",'exp'],function(items){
+		if(items.gameHistory5){
 			var weights=[]
 			for(var i=0;i<this.considerations.length;i++){
 				weights[i]=0
 			}
 
-			for(var i=0;i<items.gameHistory.length;i++){
-				var stat=items.gameHistory[i],
+			for(var i=0;i<items.gameHistory5.length;i++){
+				var stat=items.gameHistory5[i],
 					totalWeight=stat.considerationWeights.reduce(function(a,b){return a+b}),
 					maxScore=Math.max.apply(null,stat.scores)
 				if(maxScore!=-Infinity){
@@ -148,10 +148,24 @@ function Ai(move,split,shoot){
 
 			this.totalWeights=weights
 		}
+		if(items.exp){
+			this.exp=items.exp	
+		}
 	}.bind(this))
 }
 
 Ai.prototype={
+	score:0,
+	exp:0,
+	get lvl(){
+		return ~~Math.pow(this.exp,.25)
+	},
+	get lvlPercent(){
+		return ~~(
+			(this.exp-Math.pow(this.lvl,4))
+			/(Math.pow(this.lvl+1,4)-Math.pow(this.lvl,4))
+			*100)
+	},
 	nicks:[],
 	totalWeightedScore:0,
 	cushions:[],
@@ -420,6 +434,10 @@ Ai.prototype={
 	},
 	actionCooldown:0,
 	tick:function(organisms,myOrganisms,score){
+		if (score > this.score){
+			this.exp+=score-this.score
+		}
+		this.score=score
 		var otherOrganisms=this.otherOrganisms=organisms.filter(function(organism){
 				organism.nx=organism.D
 				organism.ny=organism.F
@@ -458,7 +476,7 @@ Ai.prototype={
 			var action=this.findBestAction(mergedOrganism,otherOrganisms,this.depth)
 
 			this.actionCooldown--
-			if (action&&(this.actionCooldown<1||action.myOrganism.size<action.otherOrganism.size*.85||action.myOrganism.src.length>1)){
+			if (action&&(this.actionCooldown<1||action.myOrganism.size<action.otherOrganism.size*.85||action.myOrganism.src.length>1||action.otherOrganism.v)){
 				if(action.myOrganism.size<action.otherOrganism.size*.85
 					&&Math.pow(Math.pow(action.x-5600,2)+Math.pow(action.y-5600,2),.5)>5600
 				){
@@ -501,6 +519,7 @@ Ai.prototype={
 			}
 
 			if (this.currentState!='alive'){
+
 				this.lastStateChangeDate=new Date
 				this.pings.push(Date.now()-startGameDate)
 				this.pings=this.pings.slice(this.pings.length-400,this.pings.length)
@@ -557,7 +576,10 @@ Ai.prototype={
 				this.gameHistory.push(stat)
 
 				var slicedGameHistory=this.gameHistory.slice(this.gameHistory.length-400>0?this.gameHistory.length-400:0,this.gameHistory.length)
-				chrome.storage.local.set({gameHistory5:slicedGameHistory}) 
+				chrome.storage.local.set({
+					gameHistory5:slicedGameHistory,
+					exp:this.exp	
+					}) 
 
 				var weights=this.totalWeights
 				for(var i=this.gameHistory.length-1;i<this.gameHistory.length;i++){

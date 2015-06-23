@@ -1,9 +1,8 @@
-var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
-	nicks=[
+var nicks=[
 		'twitch/gamerlio',
 		'nomday.com/lio',
 		'Skynet',
-		'bender',
+		'Bender',
 		'Sonny',
 		'Rosey',
 		'MCP',
@@ -63,7 +62,10 @@ var chatLibId='jfncmchbdglkmddpjkimdmaofbpcmdol',
 			+'</div>'
 		+'</div>').appendTo(body),
 	intuitionForm=$('<form id="intuition-form" class="form-horizontal"></form>').appendTo('#intuition-body'),
-	pingH4=$('<h4 id="ping"></h4>').appendTo(body)
+	pingH4=$('<h4 id="ping"></h4>').appendTo(body),
+	level=$('<div id="lvl">Level 1</div>').appendTo(body),
+	expBar=$('<div class="progress-bar"></div>')
+		.appendTo($('<div id="exp" class="progress progress-striped active"></div>').appendTo(body))
 
 $('#playBtn').after(playBtn).remove()
 
@@ -123,8 +125,6 @@ function renderStatus(){
 						renderIntuitionMenu()
 						$(intuitionPanel).modal()	
 					}))
-	}else if(ai.gameHistory.length<100){
-		aiStatusH4.html('<span class="alert">INFANCY STAGE</span>')
 	}else if(ai.gameHistory.length%2){
 		aiStatusH4.html('<span class="alert">EXPERIMENTING</span>')
 	}else{
@@ -135,6 +135,17 @@ function renderStatus(){
 ai.onDraw=function(){
 	if(!((this.scoreHistory.length+1)%10)){
 		scoreH4.text(~~(this.scoreHistory[this.scoreHistory.length-1]/100)+' pts')
+		level.text('Level '+ai.lvl)
+		expBar.attr('style','width:'+ai.lvlPercent+'%')
+		if(ai.lvlPercent<50){
+			expBar.removeClass('progress-bar-info progress-bar-success')
+		}else if (ai.lvlPercent<75){
+			expBar.addClass('progress-bar-info')
+		}else{
+			expBar
+				.removeClass('progress-bar-info')
+				.addClass('progress-bar-success')
+		}
 	}
 
 	var needsUpdate=false
