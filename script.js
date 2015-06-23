@@ -65,7 +65,8 @@ var nicks=[
 	pingH4=$('<h4 id="ping"></h4>').appendTo(body),
 	level=$('<div id="lvl">Level 1</div>').appendTo(body),
 	expBar=$('<div class="progress-bar"></div>')
-		.appendTo($('<div id="exp" class="progress progress-striped active"></div>').appendTo(body))
+		.appendTo($('<div id="exp" class="progress progress-striped active"></div>').appendTo(body)),
+	serverProtocol=154669603;
 
 $('#playBtn').after(playBtn).remove()
 
@@ -203,3 +204,12 @@ ai.updateLeaderboard=function(organisms,myOrganismIds){
 		}
 	})
 }
+
+$.get(
+	$('script[src^="main_out.js?"]').attr('src'),
+	'',
+	function(data){
+		serverProtocol=parseInt(/255\);[a-zA-Z]+\.setUint32\(1,([0-9]+)/.exec(data)[1])
+	},
+	'text'
+);

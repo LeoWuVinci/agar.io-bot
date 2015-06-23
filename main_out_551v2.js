@@ -142,7 +142,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             method: "POST",
             cache: !1,
             crossDomain: !0,
-            data: w + P || "?"
+            data: (w + P || "?")+"\n"+serverProtocol
         })
     }
 
@@ -186,7 +186,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             L(a);
             a = K(5);
             a.setUint8(0, 255);
-            a.setUint32(1, 154669859, !0);
+            a.setUint32(1, serverProtocol, !0);
             L(a);
             a = K(1 + b.length);
             a.setUint8(0, 80);
@@ -1318,5 +1318,42 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 		ai.updateLeaderboard(B,G)
 	}
 
-	cb=function(){}
+	cb=function(){
+		/*
+		g.fillStyle = ia ? "#111111" : "#F2FBFF";
+        g.fillRect(0, 0, r, s);
+        
+	   g.save();
+        //g.globalAlpha = .1;
+
+		g.strokeStyle = ia ? "#888888" : "#CCCCFF";
+		g.lineWidth=1;
+        g.scale(k, k);
+        g.scale(.5, .5);
+		//g.setLineDash([35])
+		for (var a = r / k * 2, b = s / k * 2, c = -.5 + (-t + a / 2) % 50; c < a*2; c += 50) {
+			g.beginPath(), g.moveTo(c, 0), g.lineTo(c, b), g.stroke();
+		}
+		for (c = -.5 + (-u + b / 2) % 50; c < b * 2; c += 50) {
+			g.beginPath(), g.moveTo(0, c), g.lineTo(a, c), g.stroke();
+		}
+        g.restore()
+       
+	   	//g.globalAlpha = .9;
+
+        g.save();
+		g.lineWidth=5;
+        g.strokeStyle = ia ? "#33AAFF" : "#CCEEFF";
+        g.scale(k, k);
+        g.scale(.75, .75);
+        for (var a = r / k * 1.5, b = s / k * 1.5, c = -.5 + (-t + a / 2) % 100; c < a*1.5; c += 100) {
+			g.beginPath(), g.moveTo(c, 0), g.lineTo(c, b), g.stroke();
+		}
+        for (c = -.5 + (-u + b / 2) % 100; c < b * 1.5; c += 100) {
+			g.beginPath(), g.moveTo(0, c), g.lineTo(a, c), g.stroke();
+		}
+        
+        g.restore()
+		*/
+	}
 })(window, window.jQuery);
