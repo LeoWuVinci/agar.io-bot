@@ -160,10 +160,10 @@ Ai.prototype={
 	mapMaxX:7071.067811865476,
 	mapMaxY:7071.067811865476,
 	get mapMidX(){
-		return (this.mapMaxX-this.mapMinX)/2
+		return (this.mapMaxX-this.mapMinX)/2-this.mapMinX
 	},
 	get mapMidY(){
-		return (this.mapMaxY-this.mapMinY)/2
+		return (this.mapMaxY-this.mapMinY)/2-this.mapMinY
 	},
 	score:0,
 	exp:0,
