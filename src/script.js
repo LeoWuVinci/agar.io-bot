@@ -196,7 +196,7 @@ ai.onDeath=function(){
 
 	heatMapCtx.strokeStyle='rgb(231,76,60)'
 	heatMapCtx.beginPath()
-	heatMapCtx.arc(this.lastAction.myOrganism.nx/64,this.lastAction.myOrganism.ny/64,this.lastAction.myOrganism.size/64,0,2*Math.PI)
+	heatMapCtx.arc((lastAction.myOrganism.nx-this.mapMinX)/64,(lastAction.myOrganism.ny-this.mapMinY)/64,lastAction.myOrganism.size/64,0,2*Math.PI)
 	heatMapCtx.stroke()
 }
 
