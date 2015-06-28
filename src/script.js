@@ -67,6 +67,13 @@ var	nicks=[
 	expBar=$('<div class="progress-bar"></div>')
 		.appendTo($('<div id="exp" class="progress progress-striped active"></div>').appendTo(body)),
 	serverProtocol=154669603
+	
+function onMapSizeUpdate(minX,minY,maxX,maxY){
+	ai.mapMinX=minX
+	ai.mapMinY=minY
+	ai.mapMaxX=maxX
+	ai.mapMaxY=maxY
+}
 
 $('#playBtn').after(playBtn).remove()
 

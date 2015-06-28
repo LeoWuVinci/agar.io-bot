@@ -773,7 +773,7 @@ Ai.prototype={
 		if (lastAction){
 			miniMapCtx.strokeStyle="#FFFFFF"
 			miniMapCtx.beginPath()
-			miniMapCtx.arc(lastAction.myOrganism.nx/64,lastAction.myOrganism.ny/64,lastAction.myOrganism.size/64,0,2*Math.PI)
+			miniMapCtx.arc((lastAction.myOrganism.nx-ai.mapMinX)/64,(lastAction.myOrganism.ny-ai.mapMinY)/64,lastAction.myOrganism.size/64,0,2*Math.PI)
 			miniMapCtx.stroke()
 		}
 

@@ -281,7 +281,7 @@
                 break;
             case 64:
                 ea = a.getFloat64(c, !0), c += 8, fa = a.getFloat64(c, !0), c += 8, ga = a.getFloat64(c, !0), c += 8, ha = a.getFloat64(c, !0), c += 8, Q = (ga + ea) / 2, R = (ha + fa) / 2, S = 1, 0 == p.length && (t = Q, u = R, k = S)
-       			console.log(ea,fa,ga,ha) 
+				onMapSizeUpdate(ea,fa,ga,ha)
 		}
     }
 
@@ -1302,11 +1302,6 @@
 			function(x1,y2){Y=x1;Z=y2;N()},
 			function(){D(17)},
 			function(){D(21)})
-
-	ai.mapMinX=ea
-	ai.mapMinY=fa
-	ai.mapMaxX=ga
-	ai.mapMaxY=ha
 
 	f.skinNames=Sa
 
