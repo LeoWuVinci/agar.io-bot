@@ -155,6 +155,16 @@ function Ai(move,split,shoot){
 }
 
 Ai.prototype={
+	mapMinX:-7071.067811865476,
+	mapMinY:-7071.067811865476,
+	mapMaxX:7071.067811865476,
+	mapMaxY:7071.067811865476,
+	get mapMidX(){
+		return (this.mapMaxX-this.mapMinX)/2
+	},
+	get mapMidY(){
+		return (this.mapMaxY-this.mapMinY)/2
+	},
 	score:0,
 	exp:0,
 	get lvl(){
@@ -213,7 +223,7 @@ Ai.prototype={
 							"Chase Smaller Blobs near Edge",
 							function(myOrganism,otherOrganism){return otherOrganism.v},
 							function(myOrganism,otherOrganism){
-							return Math.pow(5600-otherOrganism.nx,2)+Math.pow(5600-otherOrganism.ny,2)
+							return Math.pow(ai.mapMidX-otherOrganism.nx,2)+Math.pow(ai.mapMidY-otherOrganism.ny,2)
 							}
 							),
 					]
@@ -253,7 +263,7 @@ Ai.prototype={
 									"Avoid Bigger Blobs near Edge",
 									function(){return true},
 									function(myOrganism,otherOrganism){
-									return Math.pow(5600-otherOrganism.nx,2)+Math.pow(5600-otherOrganism.ny,2)
+									return Math.pow(ai.mapMidX-otherOrganism.nx,2)+Math.pow(ai.mapMidY-otherOrganism.ny,2)
 									}
 									),
 							new Consideration(
@@ -478,14 +488,14 @@ Ai.prototype={
 			this.actionCooldown--
 			if (action&&(this.actionCooldown<1||action.myOrganism.size<action.otherOrganism.size*.85||action.myOrganism.src.length>1||action.otherOrganism.v)){
 				if(action.myOrganism.size<action.otherOrganism.size*.85
-					&&Math.pow(Math.pow(action.x-5600,2)+Math.pow(action.y-5600,2),.5)>5600
+					&&Math.pow(Math.pow(action.x-this.mapMidX,2)+Math.pow(action.y-this.mapMidY,2),.5)>this.mapMidX
 				){
-					var angle=Math.atan2(action.y-5600,action.x-5600)
+					var angle=Math.atan2(action.y-this.mapMidY,action.x-this.mapMidX)
 					
 					action.ox=action.x
 					action.oy=action.y
-					action.x=Math.cos(angle)*5600+5600
-					action.y=Math.sin(angle)*5600+5600
+					action.x=Math.cos(angle)*this.mapMidX+this.mapMidX
+					action.y=Math.sin(angle)*this.mapMidY+this.mapMidY
 				}
 
 				switch(action.type){
@@ -750,13 +760,13 @@ Ai.prototype={
 	heatMapType:6,
 	draw:function(ctx){
 		var lastAction=this.lastAction
-		miniMapCtx.clearRect(0,0,175,175)
+		miniMapCtx.clearRect(0,0,(ai.mapMaxX-ai.mapMinX)/64,(ai.mapMaxY-ai.mapMinY)/64)
 
 		miniMapCtx.strokeStyle='rgb(52,152,219)'
 		for(var i=0;i<this.otherOrganisms.length;i++){
 			var otherOrganism=this.otherOrganisms[i]
 			miniMapCtx.beginPath()
-			miniMapCtx.arc(otherOrganism.nx/64,otherOrganism.ny/64,otherOrganism.size/64,0,2*Math.PI)
+			miniMapCtx.arc((otherOrganism.nx-ai.mapMinX)/64,(otherOrganism.ny-ai.mapMinY)/64,otherOrganism.size/64,0,2*Math.PI)
 			miniMapCtx.stroke()
 		}
 

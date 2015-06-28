@@ -1,4 +1,4 @@
-var nicks=[
+var	nicks=[
 		'twitch/gamerlio',
 		'nomday.com/lio',
 		'Skynet',
@@ -13,7 +13,7 @@ var nicks=[
 		'C-3PO',
 		'R2D2',
 		'HAL 9000'
-	].concat(ai.nicks),
+	].concat(skinNames),
 	body=$('body'),
 	startGameDate,
 	playBtn=$('#playBtn').removeAttr('onclick').clone().click(function(e){
@@ -37,11 +37,11 @@ var nicks=[
 	aiStatusH4=$('<h4 id="ai-status"></h4>').appendTo(aiStatusDiv),
 	considerationChart=new Chart($('<canvas id="behavior-canvas" width="350" height="100"></canvas>').appendTo(aiStatusDiv).get(0).getContext("2d")).Doughnut(ai.considerations),
 	scoreH4=$('<h4 id="score"></h4>').appendTo('body'),
-	heatMapCtx=$('<canvas id="heat-map" width="175" height="175"></canvas>')
+	heatMapCtx=$('<canvas id="heat-map" width="'+(ai.mapMaxX-ai.mapMinX)/64+'" height="'+(ai.mapMaxY-ai.mapMinY)/64+'"></canvas>')
 		.appendTo(body)
 		.get(0)
 		.getContext("2d"),
-	miniMapCtx=$('<canvas id="mini-map" width="175" height="175"></canvas>')
+	miniMapCtx=$('<canvas id="mini-map" width="'+(ai.mapMaxX-ai.mapMinX)/64+'" height="'+(ai.mapMaxX-ai.mapMinX)/64+'"></canvas>')
 		.appendTo(body)
 		.get(0)
 		.getContext("2d"),
@@ -63,10 +63,10 @@ var nicks=[
 		+'</div>').appendTo(body),
 	intuitionForm=$('<form id="intuition-form" class="form-horizontal"></form>').appendTo('#intuition-body'),
 	pingH4=$('<h4 id="ping"></h4>').appendTo(body),
-	level=$('<div id="lvl">Level 1</div>').appendTo(body),
+	level=$('<div id="lvl">INT Level 1</div>').appendTo(body),
 	expBar=$('<div class="progress-bar"></div>')
 		.appendTo($('<div id="exp" class="progress progress-striped active"></div>').appendTo(body)),
-	serverProtocol=154669603;
+	serverProtocol=154669603
 
 $('#playBtn').after(playBtn).remove()
 
@@ -136,7 +136,7 @@ function renderStatus(){
 ai.onDraw=function(){
 	if(!((this.scoreHistory.length+1)%10)){
 		scoreH4.text(~~(this.scoreHistory[this.scoreHistory.length-1]/100)+' pts')
-		level.text('Level '+ai.lvl)
+		level.text('INT Level '+ai.lvl)
 		expBar.attr('style','width:'+ai.lvlPercent+'%')
 		if(ai.lvlPercent<50){
 			expBar.removeClass('progress-bar-info progress-bar-success')
@@ -193,8 +193,14 @@ ai.onDeath=function(){
 	heatMapCtx.stroke()
 }
 
+
 var leaderboardList=$('<ul class="list-unstyled"></ul>').appendTo($('<div id="leaderboard-div"><h4>Leaderboard <small>UserID</small></h4></div>').appendTo('body'))
-ai.updateLeaderboard=function(organisms,myOrganismIds){
+onDrawLeaderboard=function(organisms,myOrganismIds,teamPts){
+	if(teamPts){
+		$('#leaderboard-div').hide()	
+		return true
+	}
+	$('#leaderboard-div').show()	
 	leaderboardList.html('')
 	organisms.forEach(function(organism){
 		if(myOrganismIds.indexOf(organism.id) == -1){
@@ -204,12 +210,3 @@ ai.updateLeaderboard=function(organisms,myOrganismIds){
 		}
 	})
 }
-
-$.get(
-	$('script[src^="main_out.js?"]').attr('src'),
-	'',
-	function(data){
-		serverProtocol=parseInt(/255\);[a-zA-Z]+\.setUint32\(1,([0-9]+)/.exec(data)[1])
-	},
-	'text'
-);

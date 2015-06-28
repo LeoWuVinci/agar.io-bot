@@ -1,4 +1,3 @@
-$('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 (function(f, l) {
     function Ta() {
         ma = !0;
@@ -142,7 +141,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             method: "POST",
             cache: !1,
             crossDomain: !0,
-            data: (w + P || "?")+"\n"+serverProtocol
+            data: (w + P || "?")+"\n"+serverVerId
         })
     }
 
@@ -186,7 +185,7 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
             L(a);
             a = K(5);
             a.setUint8(0, 255);
-            a.setUint32(1, serverProtocol, !0);
+            a.setUint32(1, serverVerId, !0);
             L(a);
             a = K(1 + b.length);
             a.setUint8(0, 80);
@@ -282,7 +281,8 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
                 break;
             case 64:
                 ea = a.getFloat64(c, !0), c += 8, fa = a.getFloat64(c, !0), c += 8, ga = a.getFloat64(c, !0), c += 8, ha = a.getFloat64(c, !0), c += 8, Q = (ga + ea) / 2, R = (ha + fa) / 2, S = 1, 0 == p.length && (t = Q, u = R, k = S)
-        }
+       			console.log(ea,fa,ga,ha) 
+		}
     }
 
     function $a(a, b) {
@@ -1303,7 +1303,13 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 			function(){D(17)},
 			function(){D(21)})
 
-	ai.nicks=Sa
+	ai.mapMinX=ea
+	ai.mapMinY=fa
+	ai.mapMaxX=ga
+	ai.mapMaxY=ha
+
+	f.skinNames=Sa
+
 	var onUpdate=$a
 	$a=function(a,c){
 		onUpdate(a,c)
@@ -1314,46 +1320,12 @@ $('#canvas').after($('#canvas').clone().attr('id','canvas-2')).remove();
 		F=null
 	}
 
+	var drawLeaderboard=Ja
 	Ja=function(){
-		ai.updateLeaderboard(B,G)
+		if(onDrawLeaderboard(B,G,y)){
+			drawLeaderboard()
+		}
 	}
 
-	cb=function(){
-		/*
-		g.fillStyle = ia ? "#111111" : "#F2FBFF";
-        g.fillRect(0, 0, r, s);
-        
-	   g.save();
-        //g.globalAlpha = .1;
-
-		g.strokeStyle = ia ? "#888888" : "#CCCCFF";
-		g.lineWidth=1;
-        g.scale(k, k);
-        g.scale(.5, .5);
-		//g.setLineDash([35])
-		for (var a = r / k * 2, b = s / k * 2, c = -.5 + (-t + a / 2) % 50; c < a*2; c += 50) {
-			g.beginPath(), g.moveTo(c, 0), g.lineTo(c, b), g.stroke();
-		}
-		for (c = -.5 + (-u + b / 2) % 50; c < b * 2; c += 50) {
-			g.beginPath(), g.moveTo(0, c), g.lineTo(a, c), g.stroke();
-		}
-        g.restore()
-       
-	   	//g.globalAlpha = .9;
-
-        g.save();
-		g.lineWidth=5;
-        g.strokeStyle = ia ? "#33AAFF" : "#CCEEFF";
-        g.scale(k, k);
-        g.scale(.75, .75);
-        for (var a = r / k * 1.5, b = s / k * 1.5, c = -.5 + (-t + a / 2) % 100; c < a*1.5; c += 100) {
-			g.beginPath(), g.moveTo(c, 0), g.lineTo(c, b), g.stroke();
-		}
-        for (c = -.5 + (-u + b / 2) % 100; c < b * 1.5; c += 100) {
-			g.beginPath(), g.moveTo(0, c), g.lineTo(a, c), g.stroke();
-		}
-        
-        g.restore()
-		*/
-	}
+	cb=function(){}
 })(window, window.jQuery);

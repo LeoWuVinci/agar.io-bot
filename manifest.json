@@ -1,8 +1,10 @@
 {
 	"manifest_version":2,
-	"name":"Lio's Agar.io Bot Framework",
+	"name":"Agar.io Bot Framework",
 	"short_name":"LioBot",
-	"version":"1.5.551",
+	"description":"This Agario Bot has feelings and learns to play better so please don't lump it together with meaningless agar.io hacks or cheats.",
+	"icons":{"128":"agario_ai_icon_2.png"},
+	"version":"1.6.551",
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/"],
@@ -14,6 +16,7 @@
 				"ext/bootstrap.min.js",
 				"Ai.js",
 				"main_out_551v2.js",
+				"mod_framework.js",
 				"script.js"
 			],
 			"run_at":"document_end"
