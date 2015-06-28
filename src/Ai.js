@@ -160,10 +160,10 @@ Ai.prototype={
 	mapMaxX:7071.067811865476,
 	mapMaxY:7071.067811865476,
 	get mapMidX(){
-		return (this.mapMaxX-this.mapMinX)/2-this.mapMinX
+		return (this.mapMaxX-this.mapMinX)/2+this.mapMinX
 	},
 	get mapMidY(){
-		return (this.mapMaxY-this.mapMinY)/2-this.mapMinY
+		return (this.mapMaxY-this.mapMinY)/2+this.mapMinY
 	},
 	score:0,
 	exp:0,
@@ -487,8 +487,9 @@ Ai.prototype={
 
 			this.actionCooldown--
 			if (action&&(this.actionCooldown<1||action.myOrganism.size<action.otherOrganism.size*.85||action.myOrganism.src.length>1||action.otherOrganism.v)){
+				
 				if(action.myOrganism.size<action.otherOrganism.size*.85
-					&&Math.pow(Math.pow(action.x-this.mapMidX,2)+Math.pow(action.y-this.mapMidY,2),.5)>this.mapMidX
+					&&Math.pow(Math.pow(action.x-this.mapMidX,2)+Math.pow(action.y-this.mapMidY,2),.5)>(this.mapMaxX-this.mapMinX)/2
 				){
 					var angle=Math.atan2(action.y-this.mapMidY,action.x-this.mapMidX)
 					
