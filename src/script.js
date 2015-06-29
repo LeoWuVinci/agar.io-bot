@@ -191,6 +191,7 @@ ai.onDeath=function(){
 			setNick(nicks[~~(nicks.length*Math.pow(Math.random(),2))])
 		},5000)
 
+	_gaq.push(['_trackEvent', 'server_finder', 'use_ip']);
 	pingH4.html(~~this.avgPing+"ms latency")
 	renderStatus()
 

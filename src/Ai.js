@@ -533,6 +533,8 @@ Ai.prototype={
 
 				this.lastStateChangeDate=new Date
 				this.pings.push(Date.now()-startGameDate)
+
+				_gaq.push(['_trackEvent', 'server', 'ping','start_game',this.pings[this.pings.length-1]]);
 				this.pings=this.pings.slice(this.pings.length-400,this.pings.length)
 				this.avgPing=this.pings.reduce(function(a,b,i){return a+b*Math.pow(2,i)})/(this.pings.map(function(a,i){return Math.pow(2,i)}).reduce(function(a,b){return a+b})+1)
 			}
@@ -556,6 +558,8 @@ Ai.prototype={
 						Math.max.apply(null,this.scoreHistory),
 						considerationWeights)
 
+				_gaq.push(['_trackEvent','bot','died','highest_score',stat.maxScore])
+				_gaq.push(['_trackEvent','bot','died','score',this.scoreHistory[this.scoreHistory.length-1]])
 				if(this.lastAction){
 					var mOrganism=this.lastAction.myOrganism
 					var oOrganism=this.lastAction.otherOrganism
