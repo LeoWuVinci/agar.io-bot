@@ -16,7 +16,7 @@ var	nicks=[
 	].concat(skinNames),
 	body=$('body'),
 	startGameDate,
-	playBtn=$('#playBtn').removeAttr('onclick').clone().click(function(e){
+	playBtn=$('.btn-play').removeAttr('onclick').clone().click(function(e){
 		clearInterval(intervalId)
 		startGameDate=Date.now()
 		setNick(nicks[~~(nicks.length*Math.pow(Math.random(),.5))]);
@@ -75,14 +75,14 @@ function onMapSizeUpdate(minX,minY,maxX,maxY){
 	ai.mapMaxY=maxY
 }
 
-$('#playBtn').after(playBtn).remove()
+$('.btn-play').after(playBtn).remove()
 
 $('<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/darkly/bootstrap.min.css" rel="stylesheet">').appendTo('head')
-$('#helloDialog h2')
+$('.agario-panel h2')
 	.html("Agar.io <small>w/ LioBot</small>")
 
-$('#helloDialog .form-group:first-child')
-	.append('<p class="help-block" style="text-align: center">Goto <kbd>chrome://extensions</kbd> to disable bot</p>')
+$('.agario-panel .form-group:first-child')
+	.append('<p class="help-block" style="text-align: center"><kbd>chrome://extensions</kbd> to disable</p>')
 	.next().remove()
 setDarkTheme(true)
 
@@ -191,7 +191,6 @@ ai.onDeath=function(){
 			setNick(nicks[~~(nicks.length*Math.pow(Math.random(),2))])
 		},5000)
 
-	_gaq.push(['_trackEvent', 'server_finder', 'use_ip']);
 	pingH4.html(~~this.avgPing+"ms latency")
 	renderStatus()
 
