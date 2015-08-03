@@ -303,9 +303,9 @@
             if (0 == d) break;
             ++e;
             var g, m = a.getInt16(b, !0);
-            b += 2;
+            b += 4;
             h = a.getInt16(b, !0);
-            b += 2;
+            b += 4;
             g = a.getInt16(b, !0);
             b += 2;
             for (var f = a.getUint8(b++), k = a.getUint8(b++), l = a.getUint8(b++), f = (f << 16 | k << 8 | l).toString(16); 6 >
