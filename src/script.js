@@ -16,7 +16,8 @@ var	nicks=[
 	].concat(skinNames),
 	body=$('body'),
 	startGameDate,
-	playBtn=$('.btn-play').removeAttr('onclick').clone().click(function(e){
+	playBtnName = $('#helloContainer[data-logged-in="1"]').length ? '.btn-play' : '.btn-play-guest'
+	playBtn=$(playBtnName).removeAttr('onclick').clone().click(function(e){
 		clearInterval(intervalId)
 		startGameDate=Date.now()
 		setNick(nicks[~~(nicks.length*Math.pow(Math.random(),.5))]);
@@ -75,7 +76,7 @@ function onMapSizeUpdate(minX,minY,maxX,maxY){
 	ai.mapMaxY=maxY
 }
 
-$('.btn-play').after(playBtn).remove()
+$(playBtnName).after(playBtn).remove()
 
 $('<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/darkly/bootstrap.min.css" rel="stylesheet">').appendTo('head')
 $('.agario-panel h2')
