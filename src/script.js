@@ -16,7 +16,7 @@ var	nicks=[
 	].concat(skinNames),
 	body=$('body'),
 	startGameDate,
-	playBtnName = $('#helloContainer[data-logged-in="1"]').length ? '.btn-play' : '.btn-play-guest'
+	playBtnName = $('#helloContainer[data-logged-in="1"]').length ? '.btn-play' : '.btn-play-guest',
 	playBtn=$(playBtnName).removeAttr('onclick').clone().click(function(e){
 		clearInterval(intervalId)
 		startGameDate=Date.now()
