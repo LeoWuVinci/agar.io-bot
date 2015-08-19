@@ -11,7 +11,7 @@
                     c = a.clientY - (5 + r / 5 / 2);
                 if (Math.sqrt(b * b + c * c) <= r / 5 / 2) {
                     N();
-                    D(17);
+                    D(9);
                     return
                 }
             }
@@ -31,9 +31,9 @@
             b = !1,
             c = !1;
         f.onkeydown = function(d) {
-            32 != d.keyCode || a || (N(), D(17), a = !0);
+            32 != d.keyCode || a || (N(), D(9), a = !0);
             81 != d.keyCode || b || (D(18), b = !0);
-            87 != d.keyCode || c || (N(), D(21), c = !0);
+            87 != d.keyCode || c || (N(), D(13), c = !0);
             27 == d.keyCode && Ba(!0)
         };
         f.onkeyup = function(d) {
@@ -70,10 +70,10 @@
                 !h.I() || h.M || 20 >= h.size * k || (e = Math.max(h.size, e), a = Math.min(h.x, a), b = Math.min(h.y, b), c = Math.max(h.x, c), d = Math.max(h.y, d))
             }
             O = Va.ca({
-                X: a - (e + 100),
-                Y: b - (e + 100),
-                fa: c + (e + 100),
-                ga: d + (e + 100),
+                X: a - (e + 10),
+                Y: b - (e + 10),
+                fa: c + (e + 10),
+                ga: d + (e + 10),
                 da: 2,
                 ea: 4
             });
@@ -181,7 +181,7 @@
             console.log("socket open");
             a = K(5);
             a.setUint8(0, 254);
-            a.setUint32(1, 4, !0);
+            a.setUint32(1, 5, !0);
             L(a);
             a = K(5);
             a.setUint8(0, 255);
@@ -343,11 +343,10 @@
     }
 
     function N() {
-        var a;
         if (ua()) {
-            a = U - r / 2;
+            var a = U - r / 2;
             var b = V - s / 2;
-            64 > a * a + b * b || .01 > Math.abs(La - Y) && .01 > Math.abs(Ma - Z) || (La = Y, Ma = Z, a = K(21), a.setUint8(0, 16), a.setFloat64(1, Y, !0), a.setFloat64(9, Z, !0), a.setUint32(17, 0, !0), L(a))
+            64 > a * a + b * b || .01 > Math.abs(La - Y) && .01 > Math.abs(Ma - Z) || (La = Y, Ma = Z, a = K(13), a.setUint8(0, 16), a.setInt32(1, Y, !0), a.setInt32(5, Z, !0), a.setUint32(9, 0, !0), L(a))
         }
     }
 
@@ -1300,8 +1299,8 @@
 
 	var ai=f.ai=new Ai(
 			function(x1,y2){Y=x1;Z=y2;N()},
-			function(){D(17)},
-			function(){D(21)})
+			function(){D(9)},
+			function(){D(13)})
 
 	f.skinNames=Sa
 
