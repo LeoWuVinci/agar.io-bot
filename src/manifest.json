@@ -4,7 +4,7 @@
 	"short_name":"LioBot",
 	"description":"This Agario Bot has feelings and learns to play better so please don't lump it together with meaningless agar.io hacks or cheats.",
 	"icons":{"128":"agario_ai_icon_2.png"},
-	"version":"1.9.551",
+	"version":"1.9.552",
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/"],
