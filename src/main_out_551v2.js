@@ -1,4 +1,4 @@
-(function(f, l) {
+;(function(f, l) {
     function Ta() {
         ma = !0;
         ya();

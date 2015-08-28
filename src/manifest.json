@@ -8,6 +8,11 @@
 	"content_scripts": [
 		{
 			"matches":["http://agar.io/"],
+			"js":["injector.js"],
+			"run_at":"document_start"
+		},
+		{
+			"matches":["http://agar.io/"],
 			"css":["style.css"],
 			"js":[
 				"ext/md5.min.js",
@@ -29,5 +34,8 @@
 		"http://m.agar.io/*",
 		"storage",
 		"unlimitedStorage"
+	],
+	"web_accessible_resources":[
+		"prepend.js"
 	]
 }

@@ -23,11 +23,9 @@ var	nicks=[
 		setNick(nicks[~~(nicks.length*Math.pow(Math.random(),.5))]);
 		return false;
 	}),
-	secLeft=60,
+	secLeft=180,
 	intervalId=setInterval(function(){
-		if(--secLeft){
-			playBtn.text('PLAY in '+secLeft)
-		}else{
+		if(!(--secLeft)){
 			clearInterval(intervalId)
 			startGameDate=Date.now()
 			setNick(nicks[~~(nicks.length*Math.pow(Math.random(),2))]);
