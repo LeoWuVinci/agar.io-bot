@@ -1,3 +1,13 @@
+# UPDATE 2021 - DO NOT USE.  
+This framework was built to foster an environment where players and bots can live together. 
+It encouraged the possibility of a client-side API where players and bots played on equal ground.  A WIN-WIN situation.
+
+As proof where real players and bots can coexist, look no further than MOBA minions, Titanfall, and ALMOST EVERY SINGLE PLAYER GAME.
+
+Instead, the agario team actively created obstacles.  Thereby encouraged communicating directly with the server protocol
+which encourages a feeder-bot community that is always fighting with the game devs. A LOSE-LOSE situation.
+
+
 # agario-bot-framework
 Agar.io Bot Framework for others to create their own bots.
 
@@ -56,7 +66,6 @@ create a better pathfinder, forking the code would be the best choice.
 ## Ways to Support This Project
 1. Stars and Forks really help
 2. Link to https://github.com/leomwu/agario-bot from your project's README.md 
-3. Finally there's BTC Donations: 1LJ6Bh9oAGJbyFH4HmonyPLHi1sFPzwyYf
 
 ### Why Support?
 By supporting the project, I can use my time to add these kind of features:
