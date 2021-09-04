@@ -32,8 +32,8 @@ a {
 	border: 2px solid #999;
 	text-align: center;
 	position:fixed;
-	bottom:5px;
-	right:5px;
+	bottom:8px;
+	right:8px;
 }
 
 h4 {
@@ -59,7 +59,7 @@ h4 {
 #score {
 	position: fixed;
 	left:5px;
-	bottom:0px
+	bottom:2px
 }
 
 input, .consideration-label {
